@@ -1,0 +1,2843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ninho+ | Diário Digital Escolar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client UMD -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            min-height: 100%;
+        }
+
+        body { 
+            background-color: #89CFF0; 
+            color: #334155; 
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        header { 
+            background: #ffffff; 
+            border-bottom: 2px solid #e2e8f0; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+        .header-content { 
+            max-width: 950px; 
+            margin: 0 auto; 
+            padding: 12px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        main { 
+            max-width: 950px; 
+            width: 100%; 
+            margin: 0 auto; 
+            padding: 24px 16px; 
+            flex-grow: 1; 
+            display: flex; 
+            align-items: flex-start; 
+            justify-content: center; 
+        }
+        
+        /* Navegação por Abas */
+        .app-nav { display: flex; gap: 8px; margin-bottom: 16px; width: 100%; background: #ffffff; padding: 6px; border-radius: 14px; border: 1px solid #cbd5e1; }
+        .nav-btn { flex: 1; padding: 12px 10px; min-height: 44px; border-radius: 10px; font-weight: 600; font-size: 13px; color: #64748b; background: transparent; transition: all 0.2s; text-align: center; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .nav-btn.active { background: #1e3a8a; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+        .card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.05); width: 100%; margin-bottom: 16px; animation: fadeIn 0.3s ease-in-out; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
+        
+        /* Cartões de Perfil por Gênero */
+        .card-profile-masculino { border-left: 6px solid #3b82f6; background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
+        .card-profile-feminino { border-left: 6px solid #ec4899; background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%); }
+        
+        /* Bolinhas Indicadoras de Sexo */
+        .dot-gender { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+        .dot-masculino { background-color: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); }
+        .dot-feminino { background-color: #ec4899; box-shadow: 0 0 6px rgba(236, 72, 153, 0.5); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        button { cursor: pointer; border: none; font-family: inherit; -webkit-appearance: none; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-primary { background: #1e3a8a; color: white; padding: 14px; min-height: 48px; width: 100%; border-radius: 12px; font-weight: 600; font-size: 13px; transition: background 0.2s, transform 0.1s; }
+        .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+        .btn-secondary { background: #eff6ff; color: #1e3a8a; padding: 10px 14px; min-height: 40px; border-radius: 10px; font-weight: 600; font-size: 12px; border: 1px solid #dbeafe; }
+        .btn-danger { background: #fff1f2; color: #e11d48; padding: 8px 12px; min-height: 36px; border-radius: 8px; font-weight: 600; font-size: 11px; border: 1px solid #ffe4e6; }
+        .btn-sair { background: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; min-height: 36px; }
+        
+        /* Botão Ciente com Fundo Branco Inicial e Verde quando Marcado */
+        .btn-ciente { 
+            background: #ffffff; 
+            color: #475569; 
+            border: 1px solid #cbd5e1; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 11px; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-ciente:hover {
+            border-color: #22c55e;
+            color: #166534;
+        }
+        .btn-ciente.confirmado { 
+            background: #22c55e; 
+            color: #ffffff; 
+            border-color: #16a34a; 
+            box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+        }
+
+        @media (hover: hover) {
+            .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+            .btn-secondary:hover:not(:disabled) { background: #dbeafe; }
+            .btn-danger:hover:not(:disabled) { background: #ffe4e6; }
+        }
+
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            font-family: inherit; 
+            background: #f8fafc; 
+            outline: none; 
+            margin-top: 4px; 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        input[type="checkbox"] {
+            -webkit-appearance: checkbox;
+            -moz-appearance: checkbox;
+            appearance: checkbox;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-top: 12px; }
+
+        .satisfaction-scale { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; }
+        .satisfaction-btn { flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 8px; min-height: 48px; font-size: 22px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .satisfaction-btn.selected { background: #dbeafe; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); transform: scale(1.05); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; text-align: center; }
+        .stat-value { font-size: 22px; font-weight: 700; color: #1e3a8a; margin-top: 4px; }
+        .stat-label { font-size: 11px; color: #64748b; font-weight: 600; }
+
+        .timeline { position: relative; padding-left: 20px; margin-top: 12px; }
+        .timeline::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px; background: #cbd5e1; }
+        .timeline-item { position: relative; margin-bottom: 16px; }
+        .timeline-dot { position: absolute; left: -18px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; }
+        .timeline-date { font-size: 10px; font-weight: 700; color: #64748b; margin-bottom: 2px; }
+        .timeline-content { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 10px; font-size: 11px; }
+
+        /* Estilos do Calendário Escolar com Avisos Integrados */
+        .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+        .calendar-event-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid #1e3a8a; border-radius: 12px; padding: 14px; transition: transform 0.2s; }
+        .calendar-event-card.is-aviso { border-left-color: #f97316; background: #fffbf5; }
+        .event-date-badge { display: inline-block; background: #eff6ff; color: #1e3a8a; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; }
+        .event-type-badge { display: inline-block; background: #ffedd5; color: #c2410c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; margin-left: 4px; }
+
+        /* Estilos do Queridômetro */
+        .progress-bar-bg { background: #e2e8f0; border-radius: 8px; height: 10px; width: 100%; overflow: hidden; margin-top: 4px; }
+        .progress-bar-fill { height: 100%; border-radius: 8px; transition: width 0.4s ease-in-out; }
+
+        /* Grade Compacta de Alertas */
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .micro-alert-card {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-top: 3px solid #e11d48;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 85px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .micro-alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            color: #9f1239;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        .micro-alert-date {
+            font-size: 9px;
+            background: #ffe4e6;
+            color: #9f1239;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .micro-alert-body {
+            color: #475569;
+            font-size: 10px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* BANNER DE NOTIFICAÇÃO FLUTUANTE CUSTOMIZADO DO NINHO+ */
+        #ninho-toast-container {
+            position: fixed;
+            top: calc(16px + env(safe-area-inset-top, 0px));
+            right: 16px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: calc(100% - 32px);
+            pointer-events: none;
+        }
+        .ninho-toast {
+            background: #1e3a8a;
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25);
+            font-size: 12px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            pointer-events: auto;
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 5px solid #3b82f6;
+        }
+        .ninho-toast-warning {
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #ffedd5;
+            border-left: 5px solid #f97316;
+        }
+        .ninho-toast-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #dcfce7;
+            border-left: 5px solid #22c55e;
+        }
+        .ninho-toast-danger {
+            background: #fff1f2;
+            color: #9f1239;
+            border: 1px solid #ffe4e6;
+            border-left: 5px solid #e11d48;
+        }
+        .ninho-toast-close {
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 0 2px;
+            color: inherit;
+        }
+        .ninho-toast-close:hover { opacity: 1; }
+
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .flex-gap { display: flex; align-items: center; gap: 10px; }
+        .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: #eff6ff; color: #1e3a8a; }
+        
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(30, 58, 138, 0.45); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+            padding: 16px; 
+            padding-top: calc(16px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            backdrop-filter: blur(3px); 
+            -webkit-backdrop-filter: blur(3px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-box { 
+            background: white; 
+            width: 100%; 
+            max-width: 450px; 
+            border-radius: 16px; 
+            padding: 24px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); 
+            max-height: 85vh; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+        footer { text-align: center; padding: 16px; font-size: 11px; color: #64748b; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .info-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .info-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a8a;
+            text-transform: uppercase;
+        }
+        .info-text {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.3;
+        }
+
+        @media (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            .card {
+                padding: 18px;
+                border-radius: 16px;
+            }
+            main {
+                padding: 16px 12px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+            .alerts-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="flex-gap">
+                <img id="header-logo-img" alt="Ninho+" style="width: 40px; height: 40px; display: block; object-fit: contain;" />
+                <div>
+                    <h1 style="font-size: 16px; font-weight: 700; color: #1e3a8a;">Ninho<span style="color: #2563eb;">+</span></h1>
+                    <p style="font-size: 10px; color: #64748b;">Diário Digital Infantil</p>
+                </div>
+            </div>
+            <div class="flex-gap">
+                <div id="header-logout-box" style="display: none;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                        <button onclick="abrirModalEditarPerfil()" class="btn-secondary" style="padding: 8px 12px; min-height: 36px;">Editar Perfil</button>
+                        <button onclick="abrirModalAlterarSenha()" class="btn-secondary" style="padding: 8px 12px; min-height: 36px;">Alterar Senha</button>
+                        <button onclick="sairDoSistema()" class="btn-sair">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="app-container"></main>
+
+    <!-- CONTAINER DE ALERTAS CUSTOMIZADOS DO NINHO+ -->
+    <div id="ninho-toast-container"></div>
+
+    <footer>
+        Ninho+ • Diário Digital Escolar &copy; 2026
+    </footer>
+
+    <script>
+        const logoNinhoSVGString = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='100%' height='100%'><g transform='translate(0, -20)'><path d='M 120,310 C 130,390 370,390 380,310 C 330,345 170,345 120,310 Z' fill='#60a5fa'/><path d='M 100,285 C 120,380 380,380 400,285 C 330,325 170,325 100,285 Z' fill='#60a5fa'/><path d='M 150,305 C 190,312 310,312 350,305' stroke='#ffffff' stroke-width='7' stroke-linecap='round' fill='none'/><path d='M 190,335 C 220,340 280,340 310,335' stroke='#ffffff' stroke-width='6' stroke-linecap='round' fill='none'/><circle cx='230' cy='220' r='60' fill='#60a5fa'/><path d='M 200,210 Q 210,200 220,210' stroke='#ffffff' stroke-width='6' stroke-linecap='round' fill='none'/><path d='M 235,210 Q 245,200 255,210' stroke='#ffffff' stroke-width='6' stroke-linecap='round' fill='none'/><polygon points='228,218 232,228 224,228' fill='#ffffff'/><circle cx='300' cy='245' r='42' fill='#60a5fa'/><path d='M 282,240 Q 289,233 296,240' stroke='#ffffff' stroke-width='5' stroke-linecap='round' fill='none'/><path d='M 304,240 Q 311,233 318,240' stroke='#ffffff' stroke-width='5' stroke-linecap='round' fill='none'/><polygon points='300,246 303,253 297,253' fill='#ffffff'/><path d='M 285,155 C 275,135 295,120 310,135 C 325,120 345,135 335,155 L 310,180 Z' fill='#60a5fa'/></g><text x='250' y='425' font-family='Poppins, sans-serif' font-weight='800' font-size='82' fill='#60a5fa' text-anchor='middle'>ninho<tspan fill='#60a5fa'>+</tspan></text></svg>`;
+        const logoNinho = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(logoNinhoSVGString);
+
+        const iconeMeninoSVGString = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%' height='100%' style='border-radius:50%; background-color:#2b6beb;'><path d='M 100,35 L 170,68 L 100,101 L 30,68 Z' fill='none' stroke='#ffffff' stroke-width='10' stroke-linejoin='round'/><path d='M 60,82.2 L 60,118 C 60,138 140,138 140,118 L 140,82.2' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/><path d='M 160,73 L 160,108 M 154,108 L 166,108 M 154,122 A 6,6 0 1 0 166,122 A 6,6 0 1 0 154,122 Z' fill='none' stroke='#ffffff' stroke-width='9' stroke-linecap='round'/><path d='M 48,162 C 48,135 152,135 152,162' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/><path d='M 100,135 L 100,162' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/></svg>`;
+        const iconeMeninoSVG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconeMeninoSVGString);
+
+        const iconeMeninaSVGString = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%' height='100%' style='border-radius:50%; background-color:#f06292;'><path d='M 100,35 L 170,68 L 100,101 L 30,68 Z' fill='none' stroke='#ffffff' stroke-width='10' stroke-linejoin='round'/><path d='M 60,82.2 L 60,118 C 60,138 140,138 140,118 L 140,82.2' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/><path d='M 160,73 L 160,108 M 154,108 L 166,108 M 154,122 A 6,6 0 1 0 166,122 A 6,6 0 1 0 154,122 Z' fill='none' stroke='#ffffff' stroke-width='9' stroke-linecap='round'/><path d='M 48,162 C 48,135 152,135 152,162' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/><path d='M 100,135 L 100,162' fill='none' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/></svg>`;
+        const iconeMeninaSVG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconeMeninaSVGString);
+
+        const SUPABASE_URL = 'https://rewhgddkegcjfmsrhtqo.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_q06cxVPFiUm1-6hRhOT7Ig_H4iZsoId';
+        let supabaseClient = null;
+
+        function obterSupabase() {
+            if (supabaseClient) return supabaseClient;
+            try {
+                const g = typeof window !== 'undefined' ? window : globalThis;
+                const factory = g.supabase && g.supabase.createClient ? g.supabase.createClient : null;
+                if (factory) {
+                    supabaseClient = factory(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+            } catch (e) {
+                console.warn("Supabase não carregado:", e);
+            }
+            return supabaseClient;
+        }
+        obterSupabase();
+
+        let sessaoAtual = { tipo: null, usuario: null, filhoAtivo: null };
+        let abaAtiva = 'principal';
+        let avaliacaoNotas = { lanche: 4, humor: 4, brincadeira: 4 };
+        let somAtivo = true;
+        let modalEmergenciaJaExibidoNestaSessao = false;
+
+        function esc(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderBolinhaGenero(gender) {
+            const g = (gender || 'Masculino').toLowerCase();
+            const classeDot = g === 'feminino' ? 'dot-feminino' : 'dot-masculino';
+            const titulo = g === 'feminino' ? 'Feminino' : 'Masculino';
+            return `<span class="dot-gender ${classeDot}" title="Gênero: ${titulo}"></span>`;
+        }
+
+        // Helper auxiliar para normalizar cientes em array de strings
+        function extrairListaCientes(raw) {
+            if (Array.isArray(raw)) return raw.map(String);
+            if (typeof raw === 'string' && raw.trim() !== '') {
+                try {
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed.map(String) : [];
+                } catch(e) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        // =========================================================================
+        // NOTIFICAÇÕES & ALERTAS DO NINHO+
+        // =========================================================================
+        function mostrarAvisoModal(titulo, mensagem, tipo = 'info') {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.zIndex = '20000';
+            
+            let corBarra = '#1e3a8a';
+            if (tipo === 'erro') corBarra = '#e11d48';
+            if (tipo === 'alerta') corBarra = '#f97316';
+            if (tipo === 'sucesso') corBarra = '#16a34a';
+
+            modal.innerHTML = `
+                <div class="modal-box" style="max-width: 400px; border-top: 5px solid ${corBarra};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">${esc(titulo)}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:none; border:none; font-size:16px; font-weight:700; color:#64748b; cursor:pointer;">✕</button>
+                    </div>
+                    <p style="font-size: 12px; color: #475569; line-height: 1.4; margin-bottom: 18px;">${esc(mensagem)}</p>
+                    <button onclick="this.closest('.modal-overlay').remove()" class="btn-primary" style="min-height: 40px; padding: 10px;">Entendido</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function mostrarToastNinho(titulo, mensagem, tipo = 'alerta', tempoMs = 10000) {
+            dispararSomNotificacao();
+            const container = document.getElementById('ninho-toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            let classeTipo = 'ninho-toast-warning';
+            if (tipo === 'sucesso') classeTipo = 'ninho-toast-success';
+            if (tipo === 'erro') classeTipo = 'ninho-toast-danger';
+
+            toast.className = `ninho-toast ${classeTipo}`;
+            toast.innerHTML = `
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 700; font-size: 12px; margin-bottom: 2px;">${esc(titulo)}</div>
+                    <div style="font-size: 11px; opacity: 0.9;">${esc(mensagem)}</div>
+                </div>
+                <button class="ninho-toast-close" onclick="this.parentElement.remove()" title="Fechar">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            if (tempoMs > 0) {
+                setTimeout(() => {
+                    if (toast && toast.parentElement) toast.remove();
+                }, tempoMs);
+            }
+        }
+
+        function validarCPF(cpfStr) {
+            const limpo = String(cpfStr || '').replace(/\D/g, '');
+            if (limpo.length !== 11) return false;
+            if (/^(\d)\1{10}$/.test(limpo)) return false;
+
+            let soma = 0;
+            for (let i = 0; i < 9; i++) {
+                soma += parseInt(limpo.charAt(i), 10) * (10 - i);
+            }
+            let resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(limpo.charAt(9), 10)) return false;
+
+            soma = 0;
+            for (let i = 0; i < 10; i++) {
+                soma += parseInt(limpo.charAt(i), 10) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(limpo.charAt(10), 10)) return false;
+
+            return true;
+        }
+
+        function validarIndicadorCPF(input, avisoId) {
+            aplicarMascaraCPF(input);
+            const aviso = document.getElementById(avisoId);
+            if (!aviso) return;
+            const limpo = input.value.replace(/\D/g, '');
+
+            if (limpo.length === 11) {
+                if (validarCPF(limpo)) {
+                    aviso.innerText = 'CPF válido ✓';
+                    aviso.style.color = '#16a34a';
+                    aviso.style.display = 'inline';
+                } else {
+                    aviso.innerText = 'CPF inválido';
+                    aviso.style.color = '#e11d48';
+                    aviso.style.display = 'inline';
+                }
+            } else {
+                aviso.style.display = 'none';
+            }
+        }
+
+        function validarData(dataStr) {
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataStr)) return false;
+            const [dia, mes, ano] = dataStr.split('/').map(Number);
+            if (mes < 1 || mes > 12 || dia < 1 || dia > 31 || ano < 1900 || ano > 2026) return false;
+            return true;
+        }
+
+        function validarIndicadorSenha(input, avisoId) {
+            const aviso = document.getElementById(avisoId);
+            if (!aviso) return;
+            if (input.value.length >= 6) {
+                aviso.style.display = 'none';
+            } else {
+                aviso.style.display = 'inline';
+            }
+        }
+
+        function alternarVisibilidadeSenha(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+
+            if (isPassword) {
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+            } else {
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+            }
+        }
+
+        function salvarSessaoLocal() {
+            try {
+                if (window.sessionStorage) {
+                    sessionStorage.setItem('ninho_sessao', JSON.stringify(sessaoAtual));
+                }
+            } catch(e) {}
+        }
+
+        function restaurarSessaoLocal() {
+            try {
+                if (window.sessionStorage) {
+                    const salva = sessionStorage.getItem('ninho_sessao');
+                    if (salva) {
+                        const parsed = JSON.parse(salva);
+                        if (parsed && parsed.tipo && parsed.usuario) {
+                            sessaoAtual = parsed;
+                            const logoutBox = document.getElementById('header-logout-box');
+                            if (logoutBox) logoutBox.style.display = 'block';
+                            carregarViewPrincipal();
+                            return true;
+                        }
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        function inicializarAplicacao() {
+            try {
+                const headerLogo = document.getElementById('header-logo-img');
+                if (headerLogo) headerLogo.src = logoNinho;
+            } catch(e) {}
+
+            try {
+                if (!restaurarSessaoLocal()) {
+                    mostrarTelaAuth();
+                }
+            } catch(e) {
+                mostrarTelaAuth();
+            }
+
+            try {
+                const client = obterSupabase();
+                if (client) iniciarRealtimeGlobal();
+            } catch(e) {}
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarAplicacao);
+        } else {
+            inicializarAplicacao();
+        }
+
+        function aplicarMascaraCPF(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 11) v = v.slice(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            input.value = v;
+        }
+
+        function aplicarMascaraData(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 8) v = v.slice(0, 8);
+            v = v.replace(/(\d{2})(\d)/, '$1/$2');
+            v = v.replace(/(\d{2})(\d)/, '$1/$2');
+            input.value = v;
+        }
+
+        function aplicarMascaraTelefone(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 10) {
+                v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d{2})(\d{4})(\d{1,4})$/, '($1) $2-$3');
+            } else if (v.length > 0) {
+                v = '(' + v;
+            }
+            input.value = v;
+        }
+
+        function dispararSomNotificacao() {
+            if (!somAtivo) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                if (ctx.state === 'suspended') {
+                    ctx.resume().catch(() => {});
+                }
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch(e) {}
+        }
+
+        function iniciarRealtimeGlobal() {
+            const client = obterSupabase();
+            if (!client) return;
+
+            // Escuta diários do aluno / coordenação
+            client.channel('ninho_realtime_daily_logs')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'daily_logs' }, payload => {
+                    const novoLog = payload.new;
+                    if (sessaoAtual.tipo === 'responsavel' && sessaoAtual.filhoAtivo && sessaoAtual.filhoAtivo.id === novoLog.child_id) {
+                        mostrarToastNinho("Nova Atualização!", `Diário preenchido. Lanche: ${novoLog.meal}`, 'sucesso');
+                        if (abaAtiva === 'principal') carregarPainelResponsavel();
+                    } else if (sessaoAtual.tipo === 'coordenador' && abaAtiva === 'principal') {
+                        mostrarToastNinho("Novo Registro!", "Um novo diário foi lançado por um(a) professor(a).", 'info');
+                        carregarPainelCoordenacao();
+                    }
+                }).subscribe();
+
+            // Escuta eventos e avisos no calendário (Publicação e Marcações de Ciente)
+            client.channel('ninho_realtime_calendar')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, payload => {
+                    if (payload.eventType === 'INSERT' && sessaoAtual.tipo === 'responsavel') {
+                        mostrarToastNinho("Novo Aviso!", "A coordenação publicou um novo aviso no calendário.", "alerta");
+                    }
+                    if (abaAtiva === 'calendario') {
+                        renderizarEventosCalendario();
+                    } else if (sessaoAtual.tipo === 'responsavel' && abaAtiva === 'principal') {
+                        carregarPainelResponsavel();
+                    }
+                }).subscribe();
+        }
+
+        function alternarAba(aba) {
+            abaAtiva = aba;
+            carregarViewPrincipal();
+        }
+
+        function carregarViewPrincipal() {
+            if (abaAtiva === 'calendario') {
+                carregarAbaCalendario();
+            } else {
+                if (sessaoAtual.tipo === 'coordenador') carregarPainelCoordenacao();
+                else if (sessaoAtual.tipo === 'professor') carregarPainelProfessor();
+                else if (sessaoAtual.tipo === 'responsavel') carregarPainelResponsavel();
+            }
+        }
+
+        function renderNavegacaoAbas() {
+            return `
+                <div class="app-nav">
+                    <button onclick="alternarAba('principal')" class="nav-btn ${abaAtiva === 'principal' ? 'active' : ''}">Painel Principal</button>
+                    <button onclick="alternarAba('calendario')" class="nav-btn ${abaAtiva === 'calendario' ? 'active' : ''}">Calendário & Avisos</button>
+                </div>
+            `;
+        }
+
+        function mostrarTelaAuth() {
+            const logoutBox = document.getElementById('header-logout-box');
+            if (logoutBox) logoutBox.style.display = 'none';
+            document.getElementById('app-container').innerHTML = `
+                <div class="card" style="max-width: 480px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <img src="${logoNinho}" alt="Ninho+" style="width: 120px; height: auto; display: block; margin: 0 auto 16px;" />
+                        <h2 style="font-size: 18px; font-weight: 700; color: #1e3a8a;">Acesso ao Ninho+</h2>
+                        <p style="font-size: 11px; color: #64748b;">Faça login com seu CPF e Senha:</p>
+                    </div>
+
+                    <div style="display: flex; background: #e2e8f0; padding: 4px; border-radius: 12px; margin-bottom: 14px;">
+                        <button type="button" onclick="mudarModoAuth('login')" id="tab-login" style="flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border-radius: 8px; background: #ffffff; color: #1e3a8a; border: none; cursor: pointer;">Entrar</button>
+                        <button type="button" onclick="mudarModoAuth('cadastro')" id="tab-cad" style="flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border-radius: 8px; background: transparent; color: #64748b; border: none; cursor: pointer;">Cadastrar</button>
+                    </div>
+
+                    <div id="bloco-formulario-auth">
+                        <form onsubmit="executarLogin(event)">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                <label style="margin-top: 0;">CPF</label>
+                                <span id="aviso-cpf-login" style="font-size: 11px; font-weight: 600; display: none;"></span>
+                            </div>
+                            <input type="text" id="log-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" autocomplete="username" autocapitalize="none" oninput="validarIndicadorCPF(this, 'aviso-cpf-login')" required>
+                            
+                            <label>Senha</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <input type="password" id="log-nasc" placeholder="Digite sua senha" autocomplete="current-password" required style="padding-right: 44px;">
+                                <button type="button" onclick="alternarVisibilidadeSenha('log-nasc', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 36px;" title="Mostrar Senha">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+
+                            <div style="text-align: right; margin-top: 8px;"><a href="#" onclick="abrirModalEsqueciSenha(); return false;" style="font-size: 12px; font-weight: 600; color: #1e3a8a; text-decoration: none;">Esqueci minha senha</a></div>
+                            <div style="margin-top: 18px;"><button type="submit" id="btn-submit-auth" class="btn-primary">Acessar Sistema</button></div>
+                        </form>
+                    </div>
+
+                    <hr style="margin: 20px 0 16px; border: 0; border-top: 1px solid #e2e8f0;">
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                            <div><div class="info-title">LEMBRETE</div><div class="info-text">CENTRO EDUCACIONAL PROFESSORA JOVELINA</div></div>
+                        </div>
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div><div class="info-title">HORÁRIO</div><div class="info-text">7H30 ÀS 12H - 12H ÀS 17H30</div></div>
+                        </div>
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <div><div class="info-title">Endereço</div><div class="info-text">Av. Samuel Macdowell, 210<br>Jardim Primavera, Camaragibe - PE<br>CEP: 54753-350</div></div>
+                        </div>
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <div><div class="info-title">Telefone</div><div class="info-text">+55 81 3090-8899 | +55 81 9479-1341</div></div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 16px; text-align: center; font-size: 11px; color: #64748b;">o futuro se faz<br>no presente.</p>
+                </div>
+            `;
+        }
+
+        function mudarModoAuth(modo) {
+            const tLog = document.getElementById('tab-login');
+            const tCad = document.getElementById('tab-cad');
+            const bloco = document.getElementById('bloco-formulario-auth');
+
+            if (modo === 'login') {
+                tLog.style.background = '#fff'; tLog.style.color = '#1e3a8a';
+                tCad.style.background = 'transparent'; tCad.style.color = '#64748b';
+                bloco.innerHTML = `
+                    <form onsubmit="executarLogin(event)">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <label style="margin-top: 0;">CPF</label>
+                            <span id="aviso-cpf-login" style="font-size: 11px; font-weight: 600; display: none;"></span>
+                        </div>
+                        <input type="text" id="log-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" autocomplete="username" autocapitalize="none" oninput="validarIndicadorCPF(this, 'aviso-cpf-login')" required>
+                        
+                        <label>Senha</label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password" id="log-nasc" placeholder="Digite sua senha" autocomplete="current-password" required style="padding-right: 44px;">
+                            <button type="button" onclick="alternarVisibilidadeSenha('log-nasc', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 36px;" title="Mostrar Senha">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+
+                        <div style="text-align: right; margin-top: 8px;"><a href="#" onclick="abrirModalEsqueciSenha(); return false;" style="font-size: 12px; font-weight: 600; color: #1e3a8a; text-decoration: none;">Esqueci minha senha</a></div>
+                            <div style="margin-top: 18px;"><button type="submit" id="btn-submit-auth" class="btn-primary">Acessar Sistema</button></div>
+                    </form>
+                `;
+            } else {
+                tCad.style.background = '#fff'; tCad.style.color = '#1e3a8a';
+                tLog.style.background = 'transparent'; tLog.style.color = '#64748b';
+                renderizarFormularioCadastro('responsavel');
+            }
+        }
+
+        let funcaoPendenteCadastro = '';
+
+        function renderizarFormularioCadastro(funcaoSelecionada) {
+            const bloco = document.getElementById('bloco-formulario-auth');
+            bloco.innerHTML = `
+                <form onsubmit="executarCadastro(event)">
+                    <label>Função / Perfil</label>
+                    <select id="cad-funcao" onchange="selecionarFuncaoCadastro(this.value)">
+                        <option value="responsavel" ${funcaoSelecionada === 'responsavel' ? 'selected' : ''}>Responsável (Pai/Mãe)</option>
+                        <option value="professor" ${funcaoSelecionada === 'professor' ? 'selected' : ''}>Professor(a)</option>
+                        <option value="coordenador" ${funcaoSelecionada === 'coordenador' ? 'selected' : ''}>Coordenador(a)</option>
+                    </select>
+
+                    <div id="container-campos-cadastro">
+                        ${renderCamposInternosCadastro(funcaoSelecionada)}
+                    </div>
+                </form>
+            `;
+        }
+
+        function renderCamposInternosCadastro(funcao) {
+            return `
+                <label>Nome Completo</label>
+                <input type="text" id="cad-nome" placeholder="Ex: Mariana Silva" autocapitalize="words" required>
+                
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px;">
+                    <label style="margin-top: 0;">CPF</label>
+                    <span id="aviso-cpf-cad" style="font-size: 11px; font-weight: 600; display: none;"></span>
+                </div>
+                <input type="text" id="cad-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" autocapitalize="none" oninput="validarIndicadorCPF(this, 'aviso-cpf-cad')" required>
+                
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px;">
+                    <label style="margin-top: 0;">Senha</label>
+                    <span id="aviso-senha-cad" style="font-size: 11px; font-weight: 600; color: #e11d48;">Mínimo 6 dígitos</span>
+                </div>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="cad-nasc" placeholder="Digite sua senha" minlength="6" autocomplete="new-password" oninput="validarIndicadorSenha(this, 'aviso-senha-cad')" required style="padding-right: 44px;">
+                    <button type="button" onclick="alternarVisibilidadeSenha('cad-nasc', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 36px;" title="Mostrar Senha">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+
+                <label>E-mail</label>
+                <input type="email" id="cad-email" placeholder="seu@email.com" inputmode="email" autocomplete="email" autocapitalize="none" required>
+
+                <div id="campos-extras-responsavel" style="display: ${funcao === 'responsavel' ? 'block' : 'none'};">
+                    <hr style="margin: 14px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 12px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Dados do Aluno</p>
+                    <label>Nome do Aluno(a)</label>
+                    <input type="text" id="cad-filho-nome" placeholder="Ex: Lucas Gabriel" autocapitalize="words">
+                    <label>Sexo / Gênero</label>
+                    <select id="cad-filho-genero">
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                    </select>
+                    <label>Turma / Sala</label>
+                    <input type="text" id="cad-filho-turma" value="Sala Maternal II" readonly style="background:#e2e8f0; cursor:not-allowed;">
+                    <label>Data de Nascimento do Aluno(a)</label>
+                    <input type="text" id="cad-filho-nasc" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" oninput="aplicarMascaraData(this)">
+                    <label>Alergias ou Restrições</label>
+                    <input type="text" id="cad-alergias" placeholder="Ex: APLV">
+                    <label>Telefone de Emergência</label>
+                    <input type="tel" id="cad-tel" placeholder="(11) 99999-9999" maxlength="15" inputmode="tel" oninput="aplicarMascaraTelefone(this)">
+                </div>
+
+                <div style="margin-top: 18px;"><button type="submit" id="btn-submit-auth" class="btn-primary">Salvar</button></div>
+            `;
+        }
+
+        function selecionarFuncaoCadastro(funcao) {
+            if (funcao === 'professor' || funcao === 'coordenador') {
+                funcaoPendenteCadastro = funcao;
+                exibirSolicitacaoToken(funcao);
+            } else {
+                funcaoPendenteCadastro = '';
+                const container = document.getElementById('container-campos-cadastro');
+                if (container) {
+                    container.innerHTML = renderCamposInternosCadastro('responsavel');
+                }
+            }
+        }
+
+        function exibirSolicitacaoToken(funcao) {
+            const nomeFuncao = funcao === 'professor' ? 'Professor(a)' : 'Coordenador(a)';
+            const container = document.getElementById('container-campos-cadastro');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-top: 12px;">
+                    <p style="font-size: 12px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Validação de Acesso Restrito</p>
+                    <p style="font-size: 11px; color: #475569; margin-bottom: 10px;">Para liberar o cadastro de <strong>${nomeFuncao}</strong>, digite o Código de Acesso (Token):</p>
+                    
+                    <label style="margin-top:0;">Código de Acesso (Token)</label>
+                    <input type="password" id="input-token-acesso" placeholder="Digite o Token" maxlength="10" style="margin-top:4px;">
+                    <span id="aviso-token-erro" style="font-size: 11px; font-weight: 600; color: #e11d48; display: none; margin-top: 4px;">Código de acesso inválido! Impedido de cadastrar.</span>
+                    
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                        <button type="button" onclick="validarTokenAcesso()" class="btn-primary" style="min-height: 40px; padding: 10px;">Validar Código</button>
+                        <button type="button" onclick="cancelarValidacaoToken()" class="btn-secondary" style="min-height: 40px; padding: 10px;">Cancelar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function validarTokenAcesso() {
+            const tokenInput = document.getElementById('input-token-acesso');
+            const avisoErro = document.getElementById('aviso-token-erro');
+            const token = tokenInput ? tokenInput.value.trim() : '';
+
+            if (funcaoPendenteCadastro === 'professor' && token === '0800') {
+                liberarCadastroPrivilegiado('professor');
+            } else if (funcaoPendenteCadastro === 'coordenador' && token === '0700') {
+                liberarCadastroPrivilegiado('coordenador');
+            } else {
+                if (avisoErro) avisoErro.style.display = 'block';
+            }
+        }
+
+        function cancelarValidacaoToken() {
+            document.getElementById('cad-funcao').value = 'responsavel';
+            funcaoPendenteCadastro = '';
+            const container = document.getElementById('container-campos-cadastro');
+            if (container) {
+                container.innerHTML = renderCamposInternosCadastro('responsavel');
+            }
+        }
+
+        function liberarCadastroPrivilegiado(funcao) {
+            const container = document.getElementById('container-campos-cadastro');
+            if (container) {
+                container.innerHTML = renderCamposInternosCadastro(funcao);
+            }
+        }
+
+        async function executarCadastro(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-submit-auth');
+            const funcao = document.getElementById('cad-funcao').value;
+            const full_name = document.getElementById('cad-nome').value.trim();
+            const cpf = document.getElementById('cad-cpf').value.trim();
+            const birth_date = document.getElementById('cad-nasc').value.trim();
+            const email = document.getElementById('cad-email').value.trim();
+
+            if (!validarCPF(cpf)) { 
+                mostrarToastNinho("CPF Inválido", "Por favor, digite um CPF válido com os dígitos corretos.", "erro");
+                document.getElementById('cad-cpf').focus();
+                return; 
+            }
+            if (!birth_date || birth_date.length < 6) { 
+                mostrarToastNinho("Senha Curta", "A senha precisa ter pelo menos 6 caracteres.", "alerta");
+                document.getElementById('cad-nasc').focus();
+                return; 
+            }
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho("Erro", "Conexão indisponível com o banco.", "erro"); return; }
+
+            try {
+                btn.disabled = true;
+                btn.innerText = "Processando...";
+
+                const { data: existente } = await client.from('staff').select('id').eq('cpf', cpf).maybeSingle();
+                if (existente) {
+                    mostrarToastNinho("Aviso", "Já existe um cadastro registrado com este CPF.", "alerta");
+                    return;
+                }
+
+                const { data: staffData, error: errStaff } = await client
+                    .from('staff')
+                    .insert([{ full_name, cpf, birth_date, role: funcao, email }])
+                    .select();
+
+                if (errStaff) throw errStaff;
+
+                if (funcao === 'responsavel') {
+                    const filhoNome = document.getElementById('cad-filho-nome').value.trim() || 'Filho(a)';
+                    const filhoGenero = document.getElementById('cad-filho-genero').value;
+                    const filhoTurma = 'Sala Maternal II';
+                    const filhoNasc = document.getElementById('cad-filho-nasc').value.trim();
+                    const allergies = document.getElementById('cad-alergias').value.trim() || 'Nenhuma';
+                    const emergency_phone = document.getElementById('cad-tel').value.trim() || '(11) 90000-0000';
+                    const dataNascFilhoValida = (filhoNasc && validarData(filhoNasc)) ? filhoNasc : '01/01/2023';
+
+                    const { error: errChild } = await client.from('children').insert([{
+                        full_name: filhoNome,
+                        gender: filhoGenero,
+                        birth_date: dataNascFilhoValida,
+                        guardian_cpf: cpf,
+                        allergies,
+                        emergency_phone,
+                        address: '',
+                        authorized_persons: '',
+                        classroom: filhoTurma,
+                        pending_update: true
+                    }]);
+
+                    if (errChild) throw errChild;
+                }
+
+                mostrarToastNinho("Sucesso", "Cadastro realizado com sucesso! Faça login.", "sucesso");
+                mudarModoAuth('login');
+            } catch (err) {
+                mostrarToastNinho("Erro de Cadastro", err.message || "Erro de conexão.", "erro");
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = "Salvar"; }
+            }
+        }
+
+        async function executarLogin(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-submit-auth');
+            const cpf = document.getElementById('log-cpf').value.trim();
+            const nasc = document.getElementById('log-nasc').value.trim();
+
+            if (!validarCPF(cpf)) { 
+                mostrarToastNinho("CPF Inválido", "Digite um CPF válido para acessar.", "erro");
+                document.getElementById('log-cpf').focus();
+                return; 
+            }
+            if (!nasc) { 
+                mostrarToastNinho("Senha Obrigatória", "Por favor, digite sua senha.", "alerta");
+                document.getElementById('log-nasc').focus();
+                return; 
+            }
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho("Erro", "Conexão com o servidor falhou.", "erro"); return; }
+
+            try {
+                btn.disabled = true;
+                btn.innerText = "Autenticando...";
+                modalEmergenciaJaExibidoNestaSessao = false;
+
+                const { data: colaboradores, error: errStaff } = await client
+                    .from('staff')
+                    .select('*')
+                    .eq('cpf', cpf)
+                    .eq('birth_date', nasc);
+
+                if (errStaff) throw errStaff;
+
+                if (colaboradores && colaboradores.length > 0) {
+                    const colaborador = colaboradores[0];
+                    sessaoAtual.tipo = colaborador.role;
+                    sessaoAtual.usuario = colaborador;
+                    salvarSessaoLocal();
+                    const logoutBox = document.getElementById('header-logout-box');
+                    if (logoutBox) logoutBox.style.display = 'block';
+
+                    carregarViewPrincipal();
+                    return;
+                }
+
+                const { data: alunos, error: errChild } = await client
+                    .from('children')
+                    .select('*')
+                    .eq('guardian_cpf', cpf);
+
+                if (errChild) throw errChild;
+
+                if (alunos && alunos.length > 0) {
+                    sessaoAtual.tipo = 'responsavel';
+                    sessaoAtual.usuario = { full_name: 'Responsável', cpf: cpf };
+                    sessaoAtual.filhoAtivo = alunos[0];
+                    salvarSessaoLocal();
+                    const logoutBox = document.getElementById('header-logout-box');
+                    if (logoutBox) logoutBox.style.display = 'block';
+                    carregarViewPrincipal();
+                    return;
+                }
+
+                mostrarAvisoModal("Acesso Negado", "CPF ou Senha incorretos. Verifique suas credenciais.", "erro");
+            } catch (err) {
+                mostrarToastNinho("Erro de Login", err.message || "Erro ao autenticar.", "erro");
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = "Acessar Sistema"; }
+            }
+        }
+
+        // ================= ABA 2: CALENDÁRIO & AVISOS ESCOLARES =================
+        async function carregarAbaCalendario() {
+            const client = obterSupabase();
+            if (!client) return;
+
+            const agora = new Date();
+            let anoSel = agora.getFullYear();
+            let mesSel = agora.getMonth() + 1;
+
+            const isCoordenador = sessaoAtual.tipo === 'coordenador';
+
+            const container = document.getElementById('app-container');
+            container.innerHTML = `
+                <div style="width: 100%;">
+                    ${renderNavegacaoAbas()}
+                    
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 20px; padding: 20px 24px; color: white; margin-bottom: 20px;">
+                        <span class="badge" style="background: rgba(255,255,255,0.2); color: #ffffff; margin-bottom: 6px; display: inline-block;">Ninho+</span>
+                        <h2 style="font-size: 18px; font-weight: 700;">Calendário & Avisos</h2>
+                    </div>
+
+                    ${isCoordenador ? `
+                    <div class="card">
+                        <h3 style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px;">Publicar Novo Evento ou Aviso</h3>
+                        <form onsubmit="salvarEventoCalendario(event)">
+                            <label>Tipo da Publicação</label>
+                            <select id="event-type" required style="margin-top:4px;">
+                                <option value="" disabled selected style="color: #94a3b8;">Selecione o tipo de publicação...</option>
+                                <option value="evento">Evento / Atividade</option>
+                                <option value="aviso">Aviso Importante (Com Confirmação de Ciente)</option>
+                            </select>
+
+                            <label>Título</label>
+                            <input type="text" id="event-title" placeholder="Ex: Passeio no Parque / Reunião Geral de Pais" required>
+                            
+                            <label>Data</label>
+                            <input type="date" id="event-date" required>
+                            
+                            <label>Descrição / Detalhes do Aviso</label>
+                            <textarea id="event-desc" rows="3" placeholder="Escreva os detalhes para os pais e professores..." required></textarea>
+                            
+                            <div style="margin-top: 14px;"><button type="submit" id="btn-publicar-evento" class="btn-primary">Publicar no Calendário Escolar</button></div>
+                        </form>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 style="font-size: 14px; font-weight: 700; color: #1e3a8a;">Mural de Eventos e Avisos</h3>
+                            <div class="flex-gap">
+                                <select id="cal-filter-mes" onchange="renderizarEventosCalendario()" style="margin-top:0; width:auto;">
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                                <select id="cal-filter-ano" onchange="renderizarEventosCalendario()" style="margin-top:0; width:auto;">
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="calendar-events-container">
+                            <p style="font-size: 12px; color: #64748b; text-align: center;">Carregando dados...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('cal-filter-mes').value = mesSel;
+            document.getElementById('cal-filter-ano').value = anoSel;
+
+            await renderizarEventosCalendario();
+        }
+
+        async function renderizarEventosCalendario() {
+            const filterMesEl = document.getElementById('cal-filter-mes');
+            const filterAnoEl = document.getElementById('cal-filter-ano');
+            const container = document.getElementById('calendar-events-container');
+
+            if (!container || !filterMesEl || !filterAnoEl) return;
+
+            const mes = parseInt(filterMesEl.value);
+            const ano = parseInt(filterAnoEl.value);
+
+            const isCoordenador = sessaoAtual.tipo === 'coordenador';
+            const isResponsavel = sessaoAtual.tipo === 'responsavel';
+            const cpfUsuario = sessaoAtual.usuario ? (sessaoAtual.usuario.cpf || sessaoAtual.usuario.guardian_cpf || '') : '';
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            const { data: eventos, error } = await client
+                .from('calendar_events')
+                .select('*')
+                .order('event_date', { ascending: true });
+
+            if (error) {
+                container.innerHTML = `<p style="font-size:12px; color:#e11d48;">Erro ao carregar calendário: ${esc(error.message)}</p>`;
+                return;
+            }
+
+            const eventosFiltrados = (eventos || []).filter(e => {
+                if (!e.event_date) return false;
+                const d = new Date(e.event_date + 'T00:00:00');
+                return (d.getMonth() + 1) === mes && d.getFullYear() === ano;
+            });
+
+            if (eventosFiltrados.length === 0) {
+                container.innerHTML = `<p style="font-size:12px; color:#64748b; text-align:center; padding: 20px 0;">Nenhum evento ou aviso agendado para este mês/ano.</p>`;
+                return;
+            }
+
+            let html = '<div class="calendar-grid">';
+            eventosFiltrados.forEach(ev => {
+                const dataObj = new Date(ev.event_date + 'T00:00:00');
+                const dataF = dataObj.toLocaleDateString('pt-BR');
+
+                const isAviso = ev.description && ev.description.startsWith('[AVISO]');
+                const descricaoLimpa = isAviso ? ev.description.replace('[AVISO]', '').trim() : ev.description;
+
+                const cientesList = extrairListaCientes(ev.acknowledged_cpfs);
+                const usuarioJaCiente = cientesList.includes(cpfUsuario);
+                const qtdCientes = cientesList.length;
+
+                html += `
+                    <div class="calendar-event-card ${isAviso ? 'is-aviso' : ''}">
+                        <div>
+                            <span class="event-date-badge">${esc(dataF)}</span>
+                            ${isAviso ? '<span class="event-type-badge">Aviso Escolar</span>' : '<span class="event-type-badge" style="background:#dbeafe; color:#1e3a8a;">Evento</span>'}
+                        </div>
+                        <h4 style="font-size: 13px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px; margin-top:4px;">${esc(ev.title)}</h4>
+                        <p style="font-size: 11px; color: #475569; margin-bottom: 10px; line-height:1.4;">${esc(descricaoLimpa || '')}</p>
+                        
+                        <div class="flex-between" style="margin-top:10px; font-size:11px; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+                            ${isCoordenador ? `
+                                <span style="font-size:11px; font-weight:700; color:#166534; background:#f0fdf4; padding:3px 8px; border-radius:6px;">
+                                    ${qtdCientes} ciente(s)
+                                </span>
+                                <button onclick="excluirEventoCalendario('${esc(ev.id)}')" class="btn-danger">Excluir</button>
+                            ` : ''}
+
+                            ${isResponsavel ? `
+                                <button onclick="alternarCienteAviso('${esc(ev.id)}')" class="btn-ciente ${usuarioJaCiente ? 'confirmado' : ''}">
+                                    ${usuarioJaCiente ? '✓ Você está ciente' : '☑ Marcar como Ciente'}
+                                </button>
+                                <span style="font-size:11px; color:#64748b;">${qtdCientes} ciente(s)</span>
+                            ` : ''}
+
+                            ${(!isCoordenador && !isResponsavel) ? `
+                                <span style="font-size:11px; color:#64748b;">${qtdCientes} ciente(s)</span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        async function alternarCienteAviso(eventoId) {
+            const client = obterSupabase();
+            if (!client) return;
+
+            const cpfUsuario = sessaoAtual.usuario ? (sessaoAtual.usuario.cpf || sessaoAtual.usuario.guardian_cpf || '') : '';
+            if (!cpfUsuario) {
+                mostrarToastNinho("Atenção", "Faça login com seu CPF para confirmar leitura.", "alerta");
+                return;
+            }
+
+            try {
+                const { data: ev, error: fetchErr } = await client
+                    .from('calendar_events')
+                    .select('acknowledged_cpfs')
+                    .eq('id', eventoId)
+                    .maybeSingle();
+
+                if (fetchErr || !ev) {
+                    mostrarToastNinho("Aviso", "O aviso não foi localizado ou precisa ser republicado pela coordenação.", "alerta");
+                    return;
+                }
+
+                let cientesList = extrairListaCientes(ev.acknowledged_cpfs);
+                const jaCiente = cientesList.includes(cpfUsuario);
+
+                if (jaCiente) {
+                    cientesList = cientesList.filter(c => c !== cpfUsuario);
+                } else {
+                    cientesList.push(cpfUsuario);
+                }
+
+                const { error: updateErr } = await client
+                    .from('calendar_events')
+                    .update({ acknowledged_cpfs: cientesList })
+                    .eq('id', eventoId);
+
+                if (updateErr) {
+                    mostrarToastNinho("Erro ao Atualizar", updateErr.message, "erro");
+                } else {
+                    mostrarToastNinho("Sucesso", !jaCiente ? "Sua confirmação de ciente foi registrada!" : "Marcação de ciente removida.", "sucesso");
+                    
+                    if (abaAtiva === 'calendario') {
+                        renderizarEventosCalendario();
+                    } else {
+                        carregarPainelResponsavel();
+                    }
+                }
+            } catch(err) {
+                console.error('Erro em alternarCienteAviso:', err);
+                mostrarToastNinho("Erro Interno", "Não foi possível registrar o ciente.", "erro");
+            }
+        }
+
+        async function salvarEventoCalendario(event) {
+            event.preventDefault();
+            const type = document.getElementById('event-type').value;
+            const title = document.getElementById('event-title').value.trim();
+            const event_date = document.getElementById('event-date').value;
+            let description = document.getElementById('event-desc').value.trim();
+            const btn = document.getElementById('btn-publicar-evento');
+
+            if (!type) {
+                mostrarToastNinho("Atenção", "Por favor, selecione o Tipo da Publicação.", "alerta");
+                document.getElementById('event-type').focus();
+                return;
+            }
+
+            if (type === 'aviso') {
+                description = `[AVISO] ${description}`;
+            }
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            try {
+                if (btn) { btn.disabled = true; btn.innerText = "Publicando..."; }
+                const { error } = await client.from('calendar_events').insert([{ 
+                    title, 
+                    event_date, 
+                    description, 
+                    acknowledged_cpfs: [] 
+                }]);
+
+                if (error) {
+                    mostrarToastNinho("Erro ao Publicar", error.message, "erro");
+                } else {
+                    mostrarToastNinho("Publicado", "Publicado com sucesso no calendário escolar!", "sucesso");
+                    document.getElementById('event-type').selectedIndex = 0;
+                    document.getElementById('event-title').value = '';
+                    document.getElementById('event-date').value = '';
+                    document.getElementById('event-desc').value = '';
+                    renderizarEventosCalendario();
+                }
+            } catch (err) {
+                mostrarToastNinho("Erro Interno", "Não foi possível publicar.", "erro");
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = "Publicar no Calendário Escolar"; }
+            }
+        }
+
+        async function excluirEventoCalendario(id) {
+            const client = obterSupabase();
+            if (!client) return;
+            const { error } = await client.from('calendar_events').delete().eq('id', id);
+            if (error) mostrarToastNinho("Erro", error.message, "erro");
+            else {
+                mostrarToastNinho("Removido", "Publicação removida do calendário.", "info");
+                renderizarEventosCalendario();
+            }
+        }
+
+        // ================= PAINEL DO COORDENADOR =================
+        async function carregarPainelCoordenacao() {
+            const client = obterSupabase();
+            if (!client) return;
+
+            const agora = new Date();
+            const mesAtual = agora.getMonth() + 1;
+            const anoAtual = agora.getFullYear();
+
+            try {
+                const { count: totalAlunos } = await client.from('children').select('*', { count: 'exact', head: true });
+                const { count: totalLogs } = await client.from('daily_logs').select('*', { count: 'exact', head: true });
+                
+                const { data: allLogs } = await client.from('daily_logs').select('*').order('created_at', { ascending: false });
+                const { data: allChildren } = await client.from('children').select('id, full_name, gender');
+
+                const mapaAlunos = {};
+                (allChildren || []).forEach(c => { mapaAlunos[c.id] = c; });
+
+                window.dadosRelatorioGlobal = (allLogs || []).map(l => ({
+                    ...l,
+                    children: mapaAlunos[l.child_id] || { full_name: 'Aluno Indefinido', gender: 'Masculino' }
+                }));
+
+                document.getElementById('app-container').innerHTML = `
+                    <div style="width: 100%;">
+                        ${renderNavegacaoAbas()}
+
+                        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 20px; padding: 24px; color: white; margin-bottom: 20px;">
+                            <span class="badge" style="background: rgba(255,255,255,0.2); color: #ffffff; margin-bottom: 8px; display: inline-block;">Ninho+ | Coordenação</span>
+                            <h2 style="font-size: 20px; font-weight: 700;">Bem-vindo(a), ${esc(sessaoAtual.usuario.full_name)}!</h2>
+                            <p style="font-size: 12px; color: #eff6ff; margin-top: 2px;">Painel Institucional e de Governança Escolar.</p>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-label">Alunos Matr.</div><div class="stat-value">${totalAlunos || 0}</div></div>
+                            <div class="stat-card"><div class="stat-label">Diários Emitidos</div><div class="stat-value">${totalLogs || 0}</div></div>
+                        </div>
+
+                        <div class="card" style="border-left: 6px solid #2563eb;">
+                            <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;"> Queridômetro Escolar Mensal</h3>
+                                    <p style="font-size: 11px; color: #64748b;">Consolidado do clima emocional e comportamental por mês</p>
+                                </div>
+                                <div class="flex-gap">
+                                    <select id="quer-mes" onchange="atualizarQueridometroMensal()" style="margin-top:0; width:auto; font-size:12px; padding:6px 10px;">
+                                        <option value="1">Jan</option>
+                                        <option value="2">Fev</option>
+                                        <option value="3">Mar</option>
+                                        <option value="4">Abr</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Jun</option>
+                                        <option value="7">Jul</option>
+                                        <option value="8">Ago</option>
+                                        <option value="9">Set</option>
+                                        <option value="10">Out</option>
+                                        <option value="11">Nov</option>
+                                        <option value="12">Dez</option>
+                                    </select>
+                                    <select id="quer-ano" onchange="atualizarQueridometroMensal()" style="margin-top:0; width:auto; font-size:12px; padding:6px 10px;">
+                                        <option value="2025">2025</option>
+                                        <option value="2026" selected>2026</option>
+                                        <option value="2027">2027</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="queridometro-conteudo"></div>
+                        </div>
+
+                        <div class="card" style="border-left: 6px solid #e11d48;">
+                            <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h3 style="font-size: 15px; font-weight: 700; color: #9f1239;"> Acompanhamento e Alertas do Mês</h3>
+                                    <p style="font-size: 11px; color: #64748b;">Casos com avaliações insatisfeitas ou atípicas</p>
+                                </div>
+                                <div class="flex-gap">
+                                    <select id="alert-mes" onchange="atualizarAlertasMensais()" style="margin-top:0; width:auto; font-size:12px; padding:6px 10px;">
+                                        <option value="1">Jan</option>
+                                        <option value="2">Fev</option>
+                                        <option value="3">Mar</option>
+                                        <option value="4">Abr</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Jun</option>
+                                        <option value="7">Jul</option>
+                                        <option value="8">Ago</option>
+                                        <option value="9">Set</option>
+                                        <option value="10">Out</option>
+                                        <option value="11">Nov</option>
+                                        <option value="12">Dez</option>
+                                    </select>
+                                    <select id="alert-ano" onchange="atualizarAlertasMensais()" style="margin-top:0; width:auto; font-size:12px; padding:6px 10px;">
+                                        <option value="2025">2025</option>
+                                        <option value="2026" selected>2026</option>
+                                        <option value="2027">2027</option>
+                                    </select>
+                                    <button onclick="exportarRelatorioCSV()" class="btn-secondary" style="padding: 6px 10px; font-size: 11px;">Exportar CSV</button>
+                                </div>
+                            </div>
+
+                            <div id="container-alertas-mensal"></div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('quer-mes').value = mesAtual;
+                document.getElementById('quer-ano').value = anoAtual;
+                document.getElementById('alert-mes').value = mesAtual;
+                document.getElementById('alert-ano').value = anoAtual;
+
+                atualizarQueridometroMensal();
+                atualizarAlertasMensais();
+
+            } catch(e) { console.error(e); }
+        }
+
+        function atualizarQueridometroMensal() {
+            const mesSel = parseInt(document.getElementById('quer-mes').value);
+            const anoSel = parseInt(document.getElementById('quer-ano').value);
+
+            const containerQuer = document.getElementById('queridometro-conteudo');
+
+            const registrosMensais = (window.dadosRelatorioGlobal || []).filter(l => {
+                if (!l.created_at) return false;
+                const d = new Date(l.created_at);
+                return (d.getMonth() + 1) === mesSel && d.getFullYear() === anoSel;
+            });
+
+            let contagemEmocoes = { excelente: 0, bom: 0, regular: 0, insatisfatorio: 0 };
+            let totalAvaliacoes = 0;
+
+            registrosMensais.forEach(l => {
+                const textoCompleto = `${l.meal || ''} ${l.mood || ''}`;
+                
+                if (textoCompleto.includes('Excelente / Muito Bom')) contagemEmocoes.excelente++;
+                else if (textoCompleto.includes('Bom')) contagemEmocoes.bom++;
+                else if (textoCompleto.includes('Regular')) contagemEmocoes.regular++;
+                else if (textoCompleto.includes('Baixo/Insatisfatório')) contagemEmocoes.insatisfatorio++;
+
+                if (l.mood && l.mood.includes('Humor:')) {
+                    totalAvaliacoes++;
+                }
+            });
+
+            const totalCalculo = totalAvaliacoes || registrosMensais.length || 0;
+            
+            if (totalCalculo === 0) {
+                containerQuer.innerHTML = `
+                    <div style="text-align:center; padding: 16px 0; color:#64748b; font-size:12px;">
+                        Nenhuma avaliação registrada para este mês/ano.
+                    </div>
+                `;
+                return;
+            }
+
+            const percExcelente = Math.round((contagemEmocoes.excelente / totalCalculo) * 100) || 0;
+            const percBom = Math.round((contagemEmocoes.bom / totalCalculo) * 100) || 0;
+            const percRegular = Math.round((contagemEmocoes.regular / totalCalculo) * 100) || 0;
+            const percInsatisfatorio = Math.round((contagemEmocoes.insatisfatorio / totalCalculo) * 100) || 0;
+
+            containerQuer.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+                    <div>
+                        <div class="flex-between" style="font-size: 11px; font-weight: 600;">
+                            <span>😄 Excelente / Feliz</span>
+                            <span style="color: #16a34a;">${percExcelente}% (${contagemEmocoes.excelente})</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percExcelente}%; background-color: #22c55e;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex-between" style="font-size: 11px; font-weight: 600;">
+                            <span>🙂 Bom / Tranquilo</span>
+                            <span style="color: #2563eb;">${percBom}% (${contagemEmocoes.bom})</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percBom}%; background-color: #3b82f6;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex-between" style="font-size: 11px; font-weight: 600;">
+                            <span>😐 Regular / Calmo</span>
+                            <span style="color: #d97706;">${percRegular}% (${contagemEmocoes.regular})</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percRegular}%; background-color: #f59e0b;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex-between" style="font-size: 11px; font-weight: 600;">
+                            <span>😞 Sensível / Chateado</span>
+                            <span style="color: #e11d48;">${percInsatisfatorio}% (${contagemEmocoes.insatisfatorio})</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percInsatisfatorio}%; background-color: #ef4444;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function atualizarAlertasMensais() {
+            const mesSel = parseInt(document.getElementById('alert-mes').value);
+            const anoSel = parseInt(document.getElementById('alert-ano').value);
+            const containerAlertas = document.getElementById('container-alertas-mensal');
+
+            const registrosMensais = (window.dadosRelatorioGlobal || []).filter(l => {
+                if (!l.created_at) return false;
+                const d = new Date(l.created_at);
+                return (d.getMonth() + 1) === mesSel && d.getFullYear() === anoSel;
+            });
+
+            const alertas = registrosMensais.filter(l => {
+                const textoCompleto = `${l.meal || ''} ${l.mood || ''}`;
+                return textoCompleto.includes('Baixo/Insatisfatório');
+            });
+
+            if (alertas.length === 0) {
+                containerAlertas.innerHTML = `
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px; text-align: center; color: #166534; font-size: 11px;">
+                        ✓ Nenhum ponto de atenção registrado para o mês selecionado.
+                    </div>
+                `;
+            } else {
+                let htmlAlertas = '<div class="alerts-grid">';
+                alertas.forEach(a => {
+                    const nome = a.children ? a.children.full_name : 'Aluno';
+                    const dataF = new Date(a.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    
+                    let resumoObs = a.mood || 'Sem observações';
+                    resumoObs = resumoObs.replace(/Humor:[^|]*\|?/, '').replace(/Brincadeiras:[^|]*\|?/, '').trim();
+
+                    htmlAlertas += `
+                        <div class="micro-alert-card">
+                            <div>
+                                <div class="micro-alert-header">
+                                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 105px;">
+                                        ${renderBolinhaGenero(a.children ? a.children.gender : 'Masculino')} ${esc(nome)}
+                                    </span>
+                                    <span class="micro-alert-date">${esc(dataF)}</span>
+                                </div>
+                                <div class="micro-alert-body">
+                                    ${esc(resumoObs)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlAlertas += '</div>';
+                containerAlertas.innerHTML = htmlAlertas;
+            }
+        }
+
+        function exportarRelatorioCSV() {
+            const mesSel = parseInt(document.getElementById('alert-mes').value);
+            const anoSel = parseInt(document.getElementById('alert-ano').value);
+
+            const filtrados = (window.dadosRelatorioGlobal || []).filter(l => {
+                if (!l.created_at) return false;
+                const d = new Date(l.created_at);
+                return (d.getMonth() + 1) === mesSel && d.getFullYear() === anoSel;
+            });
+
+            if (filtrados.length === 0) { 
+                mostrarToastNinho("Relatório Vazio", "Nenhum registro encontrado no mês selecionado.", "alerta"); 
+                return; 
+            }
+
+            let csv = "Data,Aluno,Lanche,Detalhes / Recado\n";
+            filtrados.forEach(l => {
+                const nome = l.children ? l.children.full_name : 'Aluno';
+                csv += `"${new Date(l.created_at).toLocaleDateString('pt-BR')}","${nome}","${l.meal || ''}","${(l.mood || '').replace(/"/g, '""')}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); 
+            a.href = url; 
+            a.download = `relatorio_ninho_mes_${mesSel}_${anoSel}.csv`; 
+            a.click();
+        }
+
+        // ================= PAINEL DO(A) PROFESSOR(A) =================
+        async function carregarPainelProfessor() {
+            const client = obterSupabase();
+            if (!client) return;
+            const { data: alunos } = await client.from('children').select('*');
+            window.listaAlunosCache = alunos || [];
+
+            renderizarEstruturaProfessor();
+        }
+
+        function renderizarEstruturaProfessor() {
+            document.getElementById('app-container').innerHTML = `
+                <div style="width: 100%;">
+                    ${renderNavegacaoAbas()}
+
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 20px; padding: 24px; color: white; margin-bottom: 20px;">
+                        <span class="badge" style="background: rgba(255,255,255,0.2); color: #ffffff; margin-bottom: 8px; display: inline-block;">Ninho+ | Visão do(a) Professor(a)</span>
+                        <h2 style="font-size: 20px; font-weight: 700;">BEM-VINDO (A) PROFESSOR(A) !</h2>
+                        <p style="font-size: 12px; color: #eff6ff; margin-top: 2px;">Sala Maternal II</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 style="font-size: 14px; font-weight: 700; color: #1e3a8a;">Alunos da Turma (Maternal II)</h3>
+                            <button onclick="document.querySelectorAll('.aluno-checkbox').forEach(cb => cb.checked = true)" class="btn-secondary" style="padding: 6px 10px; font-size: 11px;">Marcar Todos</button>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <input type="text" id="input-busca-prof" placeholder="Buscar aluno pelo nome..." oninput="filtrarAlunosProf(this.value)">
+                        </div>
+
+                        <div id="container-lista-prof" style="max-height: 220px; overflow-y: auto; -webkit-overflow-scrolling: touch;"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 12px;">AVALIAÇÃO</h3>
+                        
+                        <label>Alimentação / Lanche</label>
+                        <div class="satisfaction-scale">
+                            <div class="satisfaction-btn" onclick="setNota('lanche', 1, this)">😞</div>
+                            <div class="satisfaction-btn" onclick="setNota('lanche', 2, this)">😐</div>
+                            <div class="satisfaction-btn" onclick="setNota('lanche', 3, this)">🙂</div>
+                            <div class="satisfaction-btn selected" onclick="setNota('lanche', 4, this)">😄</div>
+                        </div>
+
+                        <label>Humor do Dia</label>
+                        <div class="satisfaction-scale">
+                            <div class="satisfaction-btn" onclick="setNota('humor', 1, this)">😞</div>
+                            <div class="satisfaction-btn" onclick="setNota('humor', 2, this)">😐</div>
+                            <div class="satisfaction-btn" onclick="setNota('humor', 3, this)">🙂</div>
+                            <div class="satisfaction-btn selected" onclick="setNota('humor', 4, this)">😄</div>
+                        </div>
+
+                        <label>Brincadeiras e Interação</label>
+                        <div class="satisfaction-scale">
+                            <div class="satisfaction-btn" onclick="setNota('brincadeira', 1, this)">😞</div>
+                            <div class="satisfaction-btn" onclick="setNota('brincadeira', 2, this)">😐</div>
+                            <div class="satisfaction-btn" onclick="setNota('brincadeira', 3, this)">🙂</div>
+                            <div class="satisfaction-btn selected" onclick="setNota('brincadeira', 4, this)">😄</div>
+                        </div>
+
+                        <hr style="margin: 16px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #1e3a8a;">Tarefa de Casa / Atividade</h4>
+                        
+                        <label>Tipo de Local</label>
+                        <select id="tarefa-tipo">
+                            <option value="livro">No Livro</option>
+                            <option value="folha">Na Folha</option>
+                        </select>
+
+                        <label>Descrição da Tarefa</label>
+                        <input type="text" id="tarefa-descricao" placeholder="Ex: atividade do dia 23/09 livro pág 15">
+
+                        <label>Observação / Recado</label>
+                        <input type="text" id="lote-obs" value="Participou muito bem das atividades e brincadeiras de hoje.">
+
+                        <div style="margin-top: 16px;">
+                            <button onclick="salvarLoteProf(this)" class="btn-primary">Lançar para Alunos Selecionados</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            renderizarAlunosMaternalII();
+        }
+
+        function renderizarAlunosMaternalII() {
+            const container = document.getElementById('container-lista-prof');
+            if (!container) return;
+
+            const alunosDaTurma = window.listaAlunosCache || [];
+
+            if (alunosDaTurma.length === 0) {
+                container.innerHTML = `<p style="font-size:12px; color:#64748b; padding:10px 0;">Nenhum aluno cadastrado no Maternal II.</p>`;
+                return;
+            }
+
+            let htmlAlunos = '';
+            alunosDaTurma.forEach(a => {
+                htmlAlunos += `
+                    <div class="aluno-item flex-between" style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex-grow: 1;">
+                            <input type="checkbox" class="aluno-checkbox" value="${esc(a.id)}">
+                            ${renderBolinhaGenero(a.gender)}
+                            <strong class="aluno-nome">${esc(a.full_name)}</strong>
+                        </label>
+                        <div class="flex-gap">
+                            <button onclick="verPerfilCompletoAluno('${esc(a.id)}')" class="btn-secondary" style="padding: 6px 10px; font-size: 11px;">Ver Perfil</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = htmlAlunos;
+        }
+
+        function filtrarAlunosProf(termo) {
+            const termoLower = termo.toLowerCase();
+            const itens = document.querySelectorAll('.aluno-item');
+            itens.forEach(item => {
+                const nome = item.querySelector('.aluno-nome').innerText.toLowerCase();
+                item.style.display = nome.includes(termoLower) ? 'flex' : 'none';
+            });
+        }
+
+        async function verPerfilCompletoAluno(alunoId) {
+            const client = obterSupabase();
+            if (!client) return;
+            const { data: aluno } = await client.from('children').select('*').eq('id', alunoId).single();
+            if (!aluno) return mostrarToastNinho("Aviso", "Aluno não encontrado.", "alerta");
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <div class="card-header">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">${renderBolinhaGenero(aluno.gender)} Ficha: ${esc(aluno.full_name)}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:none; color:#64748b; font-weight:600; font-size:16px; padding:4px;">✕</button>
+                    </div>
+                    <div style="font-size: 12px; display: flex; flex-direction: column; gap: 8px; color: #334155;">
+                        <p><strong>Gênero:</strong> ${esc(aluno.gender || 'Masculino')}</p>
+                        <p><strong>Turma:</strong> Sala Maternal II</p>
+                        <p><strong>Alergias / Restrições:</strong> <span style="color:#e11d48; font-weight:600;">${esc(aluno.allergies || 'Nenhuma')}</span></p>
+                        <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
+                        <p><strong>Endereço Residencial:</strong> ${esc(aluno.address || 'Não cadastrado')}</p>
+                        <p><strong>Telefone de Emergência:</strong> ${esc(aluno.emergency_phone || 'Não informado')}</p>
+                        <p><strong>Pessoas Autorizadas a Buscar:</strong> ${esc(aluno.authorized_persons || aluno.authorized_pickup || 'Não informado')}</p>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="btn-primary">Fechar Ficha</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function setNota(cat, val, el) {
+            avaliacaoNotas[cat] = val;
+            Array.from(el.parentNode.children).forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        async function salvarLoteProf(btnElement) {
+            const checkboxes = document.querySelectorAll('.aluno-checkbox:checked');
+            if (checkboxes.length === 0) { 
+                mostrarToastNinho("Atenção", "Selecione ao menos um aluno para realizar o lançamento.", "alerta"); 
+                return; 
+            }
+
+            const obs = document.getElementById('lote-obs').value.trim();
+            const tarefaTipo = document.getElementById('tarefa-tipo').value;
+            const tarefaDesc = document.getElementById('tarefa-descricao').value.trim();
+
+            const mapText = { 1: 'Baixo/Insatisfatório', 2: 'Regular', 3: 'Bom', 4: 'Excelente / Muito Bom' };
+
+            const lanche = mapText[avaliacaoNotas.lanche];
+            const humor = mapText[avaliacaoNotas.humor || 4];
+            const brincadeira = mapText[avaliacaoNotas.brincadeira || 4];
+
+            let textoTarefa = '';
+            if (tarefaDesc) {
+                const tipoFormatado = tarefaTipo === 'livro' ? 'No Livro' : 'Na Folha';
+                textoTarefa = `Tarefa (${tipoFormatado}): ${tarefaDesc}`;
+            }
+
+            const moodFormatado = `Humor: ${humor} | Brincadeiras: ${brincadeira}${textoTarefa ? ' | ' + textoTarefa : ''} | ${obs}`;
+
+            const inserts = Array.from(checkboxes).map(cb => ({
+                child_id: cb.value,
+                meal: lanche,
+                nap: 'Não se aplica',
+                mood: moodFormatado
+            }));
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            try {
+                if (btnElement) { btnElement.disabled = true; btnElement.innerText = "Lançando..."; }
+                const { error } = await client.from('daily_logs').insert(inserts);
+                if (error) throw error;
+                
+                mostrarToastNinho("Sucesso!", `Diários lançados com sucesso para ${checkboxes.length} aluno(s)!`, "sucesso", 8000);
+                carregarPainelProfessor();
+            } catch(err) {
+                mostrarToastNinho("Erro", err.message || "Falha de conexão com o banco.", "erro");
+            } finally {
+                if (btnElement) { btnElement.disabled = false; btnElement.innerText = "Lançar para Alunos Selecionados"; }
+            }
+        }
+
+        // ================= PAINEL DO RESPONSÁVEL =================
+        async function carregarPainelResponsavel() {
+            const client = obterSupabase();
+            if (!client) return;
+            const cpfResponsavel = sessaoAtual.usuario.cpf || sessaoAtual.usuario.guardian_cpf || '';
+            const cpfLimpo = cpfResponsavel.replace(/\D/g, '');
+            
+            const { data: todosFilhos } = await client.from('children').select('*');
+            const meusFilhos = (todosFilhos || []).filter(c => c.guardian_cpf && c.guardian_cpf.replace(/\D/g, '') === cpfLimpo);
+            
+            const listaFilhos = (meusFilhos.length > 0) ? meusFilhos : [{
+                id: 'demo-crianca-01',
+                full_name: sessaoAtual.usuario.full_name ? `Filho(a) de ${sessaoAtual.usuario.full_name}` : 'Lucas Gabriel Silva',
+                gender: 'Masculino',
+                allergies: 'APLV',
+                classroom: 'Sala Maternal II',
+                address: '',
+                emergency_phone: '',
+                authorized_persons: '',
+                pending_update: true
+            }];
+
+            if (!sessaoAtual.filhoAtivo || !listaFilhos.some(f => f.id === sessaoAtual.filhoAtivo.id)) {
+                sessaoAtual.filhoAtivo = listaFilhos[0];
+            }
+            salvarSessaoLocal();
+
+            const criancaAtiva = sessaoAtual.filhoAtivo;
+
+            if (!modalEmergenciaJaExibidoNestaSessao && (criancaAtiva.pending_update === true || !criancaAtiva.address || !criancaAtiva.emergency_phone)) {
+                modalEmergenciaJaExibidoNestaSessao = true;
+                setTimeout(() => abrirModalOnboardingObrigatorio(criancaAtiva), 300);
+            }
+
+            const { data: logs } = await client.from('daily_logs').select('*').eq('child_id', criancaAtiva.id).order('created_at', { ascending: false });
+            
+            // Busca o aviso mais recente do calendário
+            const { data: ultimosEventos } = await client.from('calendar_events').select('*').order('event_date', { ascending: false }).limit(1);
+
+            let seletorFilhosHTML = '';
+            listaFilhos.forEach(f => {
+                const ativo = f.id === criancaAtiva.id ? 'background: #1e3a8a; color: white;' : 'background: #f1f5f9; color: #334155;';
+                seletorFilhosHTML += `<button onclick="trocarFilhoAtivo('${esc(f.id)}')" style="padding: 8px 14px; min-height: 38px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; ${ativo}">${renderBolinhaGenero(f.gender)}${esc(f.full_name)}</button>`;
+            });
+
+            let timelineHTML = '';
+            if (logs && logs.length > 0) {
+                logs.forEach((l, idx) => {
+                    const dataF = new Date(l.created_at).toLocaleDateString('pt-BR');
+                    
+                    let partesMood = l.mood ? l.mood.split('|').map(s => s.trim()) : [];
+                    let humorTxt = partesMood.find(p => p.startsWith('Humor:')) || '';
+                    let brincadeirasTxt = partesMood.find(p => p.startsWith('Brincadeiras:')) || '';
+                    let tarefaTxt = partesMood.find(p => p.startsWith('Tarefa')) || '';
+                    let recadoTxt = partesMood.find(p => !p.startsWith('Humor:') && !p.startsWith('Brincadeiras:') && !p.startsWith('Tarefa')) || l.mood || '';
+
+                    timelineHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-date">${esc(dataF)} ${idx === 0 ? '<span class="badge" style="background:#dbeafe; color:#1e3a8a; margin-left:4px;">Hoje</span>' : ''}</div>
+                            <div class="timeline-content" style="display: flex; flex-direction: column; gap: 4px;">
+                                <div><strong>Lanche:</strong> ${esc(l.meal)}</div>
+                                ${humorTxt ? `<div><strong>Humor:</strong> ${esc(humorTxt.replace('Humor:', '').trim())}</div>` : ''}
+                                ${brincadeirasTxt ? `<div><strong>Brincadeiras:</strong> ${esc(brincadeirasTxt.replace('Brincadeiras:', '').trim())}</div>` : ''}
+                                ${tarefaTxt ? `<div style="color:#1e3a8a;"><strong>Tarefa:</strong> ${esc(tarefaTxt.replace('Tarefa', '').replace(/^\([^)]+\):/, '').trim())}</div>` : ''}
+                                ${recadoTxt ? `<div style="margin-top:2px; color:#475569;"><strong>Recado:</strong> ${esc(recadoTxt)}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                timelineHTML = '<p style="font-size:12px; color:#64748b;">Nenhum registro anterior na linha do tempo.</p>';
+            }
+
+            let blocoAvisoGeral = '';
+            if (ultimosEventos && ultimosEventos.length > 0) {
+                const ev = ultimosEventos[0];
+                const isAviso = ev.description && ev.description.startsWith('[AVISO]');
+                const descLimpa = isAviso ? ev.description.replace('[AVISO]', '').trim() : ev.description;
+
+                const cientesList = extrairListaCientes(ev.acknowledged_cpfs);
+                const usuarioJaCiente = cientesList.includes(cpfResponsavel);
+
+                blocoAvisoGeral = `
+                    <div class="card" style="background: #fff7ed; border-color: #ffedd5; border-left: 5px solid #f97316;">
+                        <div class="flex-between">
+                            <h3 style="font-size: 13px; font-weight: 700; color: #9a3412;">Último Aviso Escolar</h3>
+                            <span style="font-size:10px; color:#c2410c; font-weight:600;">Data: ${esc(new Date(ev.event_date + 'T00:00:00').toLocaleDateString('pt-BR'))}</span>
+                        </div>
+                        <p style="font-size: 12px; color: #475569; margin-top: 6px; line-height: 1.4;"><strong>${esc(ev.title)}:</strong> ${esc(descLimpa)}</p>
+                        
+                        <div style="margin-top: 10px; text-align: right;">
+                            <button onclick="alternarCienteAviso('${esc(ev.id)}')" class="btn-ciente ${usuarioJaCiente ? 'confirmado' : ''}">
+                                ${usuarioJaCiente ? '✓ Você está ciente' : '☑ Marcar como Ciente'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const generoAtivo = (criancaAtiva.gender || 'Masculino').toLowerCase();
+            const classePerfilCard = generoAtivo === 'feminino' ? 'card-profile-feminino' : 'card-profile-masculino';
+            const iconePerfilSVG = generoAtivo === 'feminino' ? iconeMeninaSVG : iconeMeninoSVG;
+            const altPerfilIcone = generoAtivo === 'feminino' ? 'Menina' : 'Menino';
+
+            document.getElementById('app-container').innerHTML = `
+                <div style="width: 100%;">
+                    ${renderNavegacaoAbas()}
+
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 20px; padding: 24px; color: white; margin-bottom: 16px;">
+                        <span class="badge" style="background: rgba(255,255,255,0.2); color: #ffffff; margin-bottom: 8px; display: inline-block;">Ninho+ | Portal da Família</span>
+                        <h2 style="font-size: 20px; font-weight: 700;">Bem-vindo(a), ${esc(sessaoAtual.usuario.full_name || 'Responsável')}!</h2>
+                        <p style="font-size: 12px; color: #eff6ff; margin-top: 2px;">Acompanhe o dia a dia dos seus filhos matriculados.</p>
+                    </div>
+
+                    <div class="card" style="padding: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="font-size: 12px; font-weight: 600; color: #1e3a8a;">Selecione o Filho:</div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            ${seletorFilhosHTML}
+                            <button onclick="abrirModalCadastrarFilho()" style="padding: 8px 12px; min-height: 38px; border-radius: 8px; font-size: 11px; background: #e2e8f0; color: #334155; font-weight: 600; border: none; cursor: pointer;">+ Adicionar Filho</button>
+                        </div>
+                    </div>
+
+                    <div class="card ${classePerfilCard}" style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <img src="${iconePerfilSVG}" alt="${altPerfilIcone}" style="width: 60px; height: 60px; border-radius: 50%;" />
+                        <div>
+                            <h2 style="font-size: 16px; font-weight: 700; color: #1e3a8a; display: flex; align-items: center;">
+                                ${renderBolinhaGenero(criancaAtiva.gender)} ${esc(criancaAtiva.full_name)}
+                            </h2>
+                            <p style="font-size: 11px; color: #e11d48; font-weight: 600;">Alergias: ${esc(criancaAtiva.allergies || 'Nenhuma')}</p>
+                            <p style="font-size: 10px; color: #64748b;">Turma: Sala Maternal II</p>
+                            <button onclick="abrirModalGerenciarAutorizados('${esc(criancaAtiva.id)}')" class="btn-secondary" style="margin-top:6px; padding:6px 10px; font-size:11px;">Quem pode buscar</button>
+                        </div>
+                    </div>
+
+                    ${blocoAvisoGeral}
+
+                    <div class="card">
+                        <h3 style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 12px;">Linha do Tempo (Histórico do Aluno)</h3>
+                        <div class="timeline">
+                            ${timelineHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function abrirModalOnboardingObrigatorio(filho) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'modal-emergencia-box';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <div class="card-header">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">Atualização Cadastral Obrigatória</h3>
+                    </div>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Preencha os dados essenciais para a segurança de <strong>${esc(filho.full_name)}</strong>:</p>
+                    
+                    <form onsubmit="salvarDadosEmergencia(event, '${esc(filho.id)}')">
+                        <label>CEP Residencial:</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="emb-cep" placeholder="00000-000" maxlength="9" inputmode="numeric" onblur="buscarCEP()" style="flex: 1;" />
+                            <button type="button" onclick="buscarCEP()" class="btn-secondary" style="margin-top: 4px;">Buscar CEP</button>
+                        </div>
+
+                        <label>Endereço e Bairro:</label>
+                        <input type="text" id="emb-address" placeholder="Rua, Número, Bairro, Cidade" value="${esc(filho.address || '')}" required>
+                        
+                        <label>Telefone de Emergência:</label>
+                        <input type="tel" id="emb-phone" placeholder="(00) 00000-0000" maxlength="15" inputmode="tel" oninput="aplicarMascaraTelefone(this)" value="${esc(filho.emergency_phone || '')}" required>
+                        
+                        <label>Pessoas Autorizadas a Buscar:</label>
+                        <input type="text" id="emb-pickup" placeholder="Ex: Avó Maria (CPF 000.000.000-00)" value="${esc(filho.authorized_persons || filho.authorized_pickup || '')}" required>
+                        
+                        <div style="margin-top: 18px;"><button type="submit" class="btn-primary">Salvar Ficha no Perfil do Aluno</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function buscarCEP() {
+            const cepInput = document.getElementById('emb-cep');
+            if (!cepInput) return;
+            const cep = cepInput.value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+                if (!data.erro) {
+                    document.getElementById('emb-address').value = `${data.logradouro}, Bairro: ${data.bairro} - ${data.localidade}/${data.uf}`;
+                } else {
+                    mostrarToastNinho("CEP", "CEP não encontrado. Preencha o endereço manualmente.", "alerta");
+                }
+            } catch (e) { console.error('Erro CEP:', e); }
+        }
+
+        async function salvarDadosEmergencia(event, childId) {
+            event.preventDefault();
+            if (!childId || childId === 'demo-crianca-01') {
+                mostrarToastNinho("Modo Demo", "Este é um perfil apenas para testes.", "alerta"); 
+                return;
+            }
+
+            const address = document.getElementById('emb-address').value.trim();
+            const phone = document.getElementById('emb-phone').value.trim();
+            const pickup = document.getElementById('emb-pickup').value.trim();
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            const { error } = await client
+                .from('children')
+                .update({ address, emergency_phone: phone, authorized_persons: pickup, authorized_pickup: pickup, pending_update: false })
+                .eq('id', childId);
+
+            if (error) mostrarToastNinho("Erro", error.message, "erro");
+            else {
+                mostrarToastNinho("Salvo", "Ficha cadastral atualizada com sucesso!", "sucesso");
+                const modal = document.getElementById('modal-emergencia-box');
+                if (modal) modal.remove();
+                if (sessaoAtual.filhoAtivo) {
+                    sessaoAtual.filhoAtivo.pending_update = false;
+                    sessaoAtual.filhoAtivo.address = address;
+                    sessaoAtual.filhoAtivo.emergency_phone = phone;
+                    sessaoAtual.filhoAtivo.authorized_persons = pickup;
+                    salvarSessaoLocal();
+                }
+                carregarPainelResponsavel();
+            }
+        }
+
+        async function abrirModalGerenciarAutorizados(filhoId) {
+            const client = obterSupabase();
+            if (!client) return;
+            const { data: filho } = await client.from('children').select('*').eq('id', filhoId).single();
+            if (!filho) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <div class="card-header">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">Quem Pode Buscar</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:none; color:#64748b; font-weight:600; font-size:16px; padding:4px;">✕</button>
+                    </div>
+                    <form onsubmit="atualizarAutorizados(event, '${esc(filhoId)}', this)">
+                        <label>Pessoas Autorizadas (Nomes e Documentos)</label>
+                        <textarea id="aut-pessoas" rows="3" required>${esc(filho.authorized_persons || '')}</textarea>
+                        <label>Telefone de Emergência</label>
+                        <input type="tel" id="aut-tel" maxlength="15" inputmode="tel" oninput="aplicarMascaraTelefone(this)" value="${esc(filho.emergency_phone || '')}" required>
+                        <div style="margin-top: 18px;"><button type="submit" class="btn-primary">Atualizar Informações</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function atualizarAutorizados(event, filhoId, form) {
+            event.preventDefault();
+            const authorized_persons = document.getElementById('aut-pessoas').value.trim();
+            const emergency_phone = document.getElementById('aut-tel').value.trim();
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            const { error } = await client.from('children').update({ authorized_persons, emergency_phone }).eq('id', filhoId);
+            if (error) mostrarToastNinho("Erro", error.message, "erro");
+            else {
+                mostrarToastNinho("Sucesso", "Lista de autorizados atualizada!", "sucesso");
+                form.closest('.modal-overlay').remove();
+                if (sessaoAtual.filhoAtivo) {
+                    sessaoAtual.filhoAtivo.authorized_persons = authorized_persons;
+                    sessaoAtual.filhoAtivo.emergency_phone = emergency_phone;
+                    salvarSessaoLocal();
+                }
+                carregarPainelResponsavel();
+            }
+        }
+
+        async function trocarFilhoAtivo(filhoId) {
+            const client = obterSupabase();
+            if (!client) return;
+            const { data: crianca } = await client.from('children').select('*').eq('id', filhoId).single();
+            if (crianca) {
+                sessaoAtual.filhoAtivo = crianca;
+                salvarSessaoLocal();
+                carregarPainelResponsavel();
+            }
+        }
+
+        function abrirModalCadastrarFilho() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <div class="card-header">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">Cadastrar Novo Filho</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:none; color:#64748b; font-weight:600; font-size:16px; padding:4px;">✕</button>
+                    </div>
+                    <form onsubmit="salvarNovoFilhoModal(event, this)">
+                        <label>Nome Completo do Aluno(a)</label>
+                        <input type="text" id="cad-novo-nome" placeholder="Ex: Lucas Gabriel" required>
+                        <label>Sexo / Gênero</label>
+                        <select id="cad-novo-genero">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                        <label>Turma / Sala</label>
+                        <input type="text" id="cad-novo-turma" value="Sala Maternal II" readonly style="background:#e2e8f0; cursor:not-allowed;">
+                        <label>Data de Nascimento</label>
+                        <input type="text" id="cad-novo-nasc" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" oninput="aplicarMascaraData(this)" required>
+                        <label>Alergias ou Restrições</label>
+                        <input type="text" id="cad-novo-alergia" placeholder="Ex: APLV ou Nenhuma">
+                        <div style="margin-top: 18px;"><button type="submit" class="btn-primary">Cadastrar Aluno</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function salvarNovoFilhoModal(event, form) {
+            event.preventDefault();
+            const full_name = document.getElementById('cad-novo-nome').value.trim();
+            const gender = document.getElementById('cad-novo-genero').value;
+            const classroom = 'Sala Maternal II';
+            const birth_date = document.getElementById('cad-novo-nasc').value.trim();
+            const allergies = document.getElementById('cad-novo-alergia').value.trim() || 'Nenhuma';
+
+            if (!validarData(birth_date)) {
+                mostrarToastNinho("Data Inválida", "Digite uma data de nascimento válida (DD/MM/AAAA).", "alerta");
+                return;
+            }
+
+            const cpfGuardian = sessaoAtual.usuario.cpf || sessaoAtual.usuario.guardian_cpf || '';
+
+            const client = obterSupabase();
+            if (!client) return;
+
+            const { data, error } = await client.from('children').insert([{
+                full_name,
+                gender,
+                birth_date,
+                guardian_cpf: cpfGuardian,
+                allergies,
+                classroom: classroom,
+                address: '',
+                emergency_phone: '',
+                authorized_persons: '',
+                pending_update: true
+            }]).select();
+
+            if (error) {
+                mostrarToastNinho("Erro ao Salvar", error.message, "erro");
+            } else {
+                mostrarToastNinho("Sucesso", "Novo filho cadastrado com sucesso!", "sucesso");
+                form.closest('.modal-overlay').remove();
+                if (data && data.length > 0) {
+                    sessaoAtual.filhoAtivo = data[0];
+                    salvarSessaoLocal();
+                }
+                carregarPainelResponsavel();
+            }
+        }
+
+        // =========================================================================
+        // SENHA (ESQUECI / ALTERAR) E EDITAR PERFIL
+        // =========================================================================
+        const SENHA_MIN = 6;
+        const SENHA_MAX = 32;
+        const ICONE_OLHO_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+        let controleTentativasSenha = { falhas: 0, bloqueadoAte: 0 };
+        let contextoEsqueciSenha = null;
+
+        // ---------- Sanitização e validação ----------
+        function sanitizarTexto(valor, max = 120) {
+            return String(valor === null || valor === undefined ? '' : valor)
+                .replace(/[\u0000-\u001F\u007F<>]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, max);
+        }
+
+        function sanitizarSenha(valor) {
+            return String(valor === null || valor === undefined ? '' : valor)
+                .replace(/[\u0000-\u001F\u007F]/g, '')
+                .trim();
+        }
+
+        function emailValido(email) {
+            return email.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+        }
+
+        function variantesCPF(cpf) {
+            const d = String(cpf || '').replace(/\D/g, '');
+            const formatado = d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : d;
+            return formatado === d ? [d] : [formatado, d];
+        }
+
+        function normalizarDataNasc(valor) {
+            const s = String(valor || '').trim();
+            let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (m) return m[1] + m[2] + m[3];
+            m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return m[3] + m[2] + m[1];
+            return s.replace(/\D/g, '');
+        }
+
+        function validarNovaSenha(nova, confirmacao, atual) {
+            if (nova.length < SENHA_MIN) return `A nova senha precisa ter no mínimo ${SENHA_MIN} caracteres.`;
+            if (nova.length > SENHA_MAX) return `A nova senha pode ter no máximo ${SENHA_MAX} caracteres.`;
+            if (nova !== confirmacao) return 'A confirmação da nova senha não confere.';
+            if (atual !== undefined && nova === atual) return 'A nova senha precisa ser diferente da senha atual.';
+            return '';
+        }
+
+        // Bloqueio simples contra tentativas repetidas (5 falhas = 60 segundos)
+        function senhaBloqueada() {
+            const restante = controleTentativasSenha.bloqueadoAte - Date.now();
+            if (restante > 0) {
+                mostrarToastNinho('Muitas tentativas', `Aguarde ${Math.ceil(restante / 1000)}s para tentar novamente.`, 'alerta');
+                return true;
+            }
+            return false;
+        }
+
+        function registrarFalhaSenha() {
+            controleTentativasSenha.falhas += 1;
+            if (controleTentativasSenha.falhas >= 5) {
+                controleTentativasSenha.falhas = 0;
+                controleTentativasSenha.bloqueadoAte = Date.now() + 60000;
+            }
+        }
+
+        // ---------- Componentes visuais ----------
+        function fecharModalPorId(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function campoSenhaHTML(id, placeholder, oninput, autocomplete, limitar) {
+            return `
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="${id}" placeholder="${placeholder}" autocomplete="${autocomplete}" ${limitar ? `maxlength="${SENHA_MAX}"` : ''} ${oninput ? `oninput="${oninput}"` : ''} required style="padding-right: 44px;">
+                    <button type="button" onclick="alternarVisibilidadeSenha('${id}', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 36px;" title="Mostrar ou ocultar senha" aria-label="Mostrar ou ocultar senha">${ICONE_OLHO_SVG}</button>
+                </div>
+            `;
+        }
+
+        function indicadorForcaHTML(barraId, textoId) {
+            return `
+                <div style="margin-top: 6px;">
+                    <div class="progress-bar-bg"><div id="${barraId}" style="height: 100%; width: 0%; background: #e11d48; border-radius: 8px; transition: width 0.2s, background 0.2s;"></div></div>
+                    <span id="${textoId}" style="font-size: 11px; font-weight: 600; color: #e11d48;">Mínimo ${SENHA_MIN} caracteres</span>
+                </div>
+            `;
+        }
+
+        function indicadorForcaSenha(input, barraId, textoId) {
+            const v = input.value;
+            const barra = document.getElementById(barraId);
+            const texto = document.getElementById(textoId);
+            if (!barra || !texto) return;
+
+            let pontos = 0;
+            if (v.length >= SENHA_MIN) pontos++;
+            if (v.length >= 8) pontos++;
+            if (/[A-Za-z]/.test(v) && /\d/.test(v)) pontos++;
+            if (/[^A-Za-z0-9]/.test(v) || (/[a-z]/.test(v) && /[A-Z]/.test(v))) pontos++;
+
+            let largura = '0%', cor = '#e11d48', msg = `Mínimo ${SENHA_MIN} caracteres`;
+            if (v.length > 0 && v.length < SENHA_MIN) {
+                largura = '25%'; msg = `Muito curta (mínimo ${SENHA_MIN} caracteres)`;
+            } else if (v.length >= SENHA_MIN && pontos <= 2) {
+                largura = '60%'; cor = '#f59e0b'; msg = 'Senha média';
+            } else if (v.length >= SENHA_MIN) {
+                largura = '100%'; cor = '#16a34a'; msg = 'Senha forte ✓';
+            }
+            barra.style.width = largura;
+            barra.style.background = cor;
+            texto.style.color = cor;
+            texto.innerText = msg;
+        }
+
+        function cabecalhoModalHTML(titulo, idModal) {
+            return `
+                <div class="card-header">
+                    <h3 style="font-size: 15px; font-weight: 700; color: #1e3a8a;">${esc(titulo)}</h3>
+                    <button type="button" onclick="fecharModalPorId('${idModal}')" style="background:none; color:#64748b; font-weight:600; font-size:16px; padding:4px; border:none; cursor:pointer;">✕</button>
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // ESQUECI MINHA SENHA
+        // =========================================================================
+        function abrirModalEsqueciSenha() {
+            fecharModalPorId('modal-esqueci-senha');
+            contextoEsqueciSenha = null;
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'modal-esqueci-senha';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    ${cabecalhoModalHTML('Esqueci minha senha', 'modal-esqueci-senha')}
+                    <div id="esq-corpo"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            renderEsqueciPasso1('responsavel');
+        }
+
+        function renderEsqueciPasso1(perfil) {
+            const corpo = document.getElementById('esq-corpo');
+            if (!corpo) return;
+            contextoEsqueciSenha = null;
+            const ativo = 'background: #ffffff; color: #1e3a8a;';
+            const inativo = 'background: transparent; color: #64748b;';
+            const base = 'flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; cursor: pointer;';
+            const ehResp = perfil === 'responsavel';
+
+            const camposPerfil = ehResp ? `
+                <label>Data de Nascimento do Aluno(a)</label>
+                <input type="text" id="esq-nasc-aluno" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" oninput="aplicarMascaraData(this)" required>
+            ` : `
+                <label>E-mail</label>
+                <input type="email" id="esq-email" placeholder="seu@email.com" inputmode="email" autocomplete="email" autocapitalize="none" maxlength="120" required>
+                <label>Token de Segurança Institucional</label>
+                <input type="password" id="esq-token" placeholder="Digite o Token" maxlength="10" autocomplete="off" required>
+            `;
+
+            corpo.innerHTML = `
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Selecione seu perfil e confirme seus dados para redefinir a senha.</p>
+                <div style="display: flex; background: #e2e8f0; padding: 4px; border-radius: 12px; margin-bottom: 12px;">
+                    <button type="button" onclick="renderEsqueciPasso1('responsavel')" style="${base} ${ehResp ? ativo : inativo}">Responsável</button>
+                    <button type="button" onclick="renderEsqueciPasso1('staff')" style="${base} ${!ehResp ? ativo : inativo}">Equipe / Staff</button>
+                </div>
+                <form onsubmit="validarEsqueciSenha(event, '${perfil}')">
+                    <label style="margin-top: 0;">${ehResp ? 'CPF do Responsável' : 'CPF'}</label>
+                    <input type="text" id="esq-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" oninput="aplicarMascaraCPF(this)" required>
+                    ${camposPerfil}
+                    <div style="margin-top: 18px;"><button type="submit" id="btn-esq-validar" class="btn-primary">Validar dados</button></div>
+                </form>
+            `;
+        }
+
+        async function validarEsqueciSenha(event, perfil) {
+            event.preventDefault();
+            if (senhaBloqueada()) return;
+
+            const btn = document.getElementById('btn-esq-validar');
+            const cpfDigitado = sanitizarTexto(document.getElementById('esq-cpf').value, 14);
+
+            if (!validarCPF(cpfDigitado)) {
+                mostrarToastNinho('CPF Inválido', 'Digite um CPF válido.', 'erro');
+                return;
+            }
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho('Erro', 'Conexão indisponível com o banco.', 'erro'); return; }
+            const variantes = variantesCPF(cpfDigitado);
+
+            try {
+                if (btn) { btn.disabled = true; btn.innerText = 'Validando...'; }
+
+                if (perfil === 'responsavel') {
+                    const nascAluno = sanitizarTexto(document.getElementById('esq-nasc-aluno').value, 10);
+                    if (!validarData(nascAluno)) {
+                        mostrarToastNinho('Data Inválida', 'Digite a data de nascimento do aluno no formato DD/MM/AAAA.', 'alerta');
+                        return;
+                    }
+
+                    const { data: filhos, error: errFilhos } = await client
+                        .from('children')
+                        .select('id, birth_date')
+                        .in('guardian_cpf', variantes);
+                    if (errFilhos) throw errFilhos;
+
+                    const alvo = normalizarDataNasc(nascAluno);
+                    const vinculado = (filhos || []).some(f => normalizarDataNasc(f.birth_date) === alvo);
+                    if (!vinculado) {
+                        registrarFalhaSenha();
+                        mostrarToastNinho('Dados não conferem', 'Não foi possível validar o CPF e a data de nascimento do aluno.', 'erro');
+                        return;
+                    }
+
+                    const { data: contas, error: errConta } = await client
+                        .from('staff')
+                        .select('cpf, role')
+                        .in('cpf', variantes)
+                        .eq('role', 'responsavel');
+                    if (errConta) throw errConta;
+
+                    if (!contas || contas.length === 0) {
+                        mostrarToastNinho('Cadastro não encontrado', 'Não há senha cadastrada para este CPF. Procure a secretaria da escola.', 'alerta');
+                        return;
+                    }
+                    contextoEsqueciSenha = { cpf: contas[0].cpf, role: 'responsavel' };
+                } else {
+                    const email = sanitizarTexto(document.getElementById('esq-email').value, 120).toLowerCase();
+                    const token = sanitizarTexto(document.getElementById('esq-token').value, 10);
+                    if (!emailValido(email)) {
+                        mostrarToastNinho('E-mail Inválido', 'Digite um e-mail válido.', 'alerta');
+                        return;
+                    }
+                    if (!token) {
+                        mostrarToastNinho('Token Obrigatório', 'Digite o Token de Segurança Institucional.', 'alerta');
+                        return;
+                    }
+
+                    const { data: contas, error: errConta } = await client
+                        .from('staff')
+                        .select('cpf, role, email')
+                        .in('cpf', variantes)
+                        .in('role', ['professor', 'coordenador']);
+                    if (errConta) throw errConta;
+
+                    const conta = (contas || []).find(c =>
+                        String(c.email || '').trim().toLowerCase() === email &&
+                        ((c.role === 'professor' && token === '0800') || (c.role === 'coordenador' && token === '0700'))
+                    );
+                    if (!conta) {
+                        registrarFalhaSenha();
+                        mostrarToastNinho('Dados não conferem', 'CPF, e-mail ou token inválidos.', 'erro');
+                        return;
+                    }
+                    contextoEsqueciSenha = { cpf: conta.cpf, role: conta.role };
+                }
+
+                controleTentativasSenha.falhas = 0;
+                renderEsqueciPasso2();
+            } catch (err) {
+                mostrarToastNinho('Erro', err.message || 'Não foi possível validar os dados.', 'erro');
+            } finally {
+                const btnAtual = document.getElementById('btn-esq-validar');
+                if (btnAtual) { btnAtual.disabled = false; btnAtual.innerText = 'Validar dados'; }
+            }
+        }
+
+        function renderEsqueciPasso2() {
+            const corpo = document.getElementById('esq-corpo');
+            if (!corpo) return;
+            corpo.innerHTML = `
+                <p style="font-size: 12px; color: #166534; font-weight: 600; margin-bottom: 4px;">Dados confirmados!</p>
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Defina a sua nova senha de acesso.</p>
+                <form onsubmit="salvarNovaSenhaEsqueci(event)">
+                    <label style="margin-top: 0;">Nova Senha</label>
+                    ${campoSenhaHTML('esq-nova', 'Mínimo 6 caracteres', "indicadorForcaSenha(this, 'esq-barra', 'esq-forca')", 'new-password', true)}
+                    ${indicadorForcaHTML('esq-barra', 'esq-forca')}
+                    <label>Confirmar Nova Senha</label>
+                    ${campoSenhaHTML('esq-conf', 'Repita a nova senha', '', 'new-password', true)}
+                    <div style="margin-top: 18px;"><button type="submit" id="btn-esq-salvar" class="btn-primary">Redefinir Senha</button></div>
+                </form>
+            `;
+        }
+
+        async function salvarNovaSenhaEsqueci(event) {
+            event.preventDefault();
+            if (!contextoEsqueciSenha) {
+                mostrarToastNinho('Validação necessária', 'Valide seus dados antes de redefinir a senha.', 'alerta');
+                renderEsqueciPasso1('responsavel');
+                return;
+            }
+            const nova = sanitizarSenha(document.getElementById('esq-nova').value);
+            const confirmacao = sanitizarSenha(document.getElementById('esq-conf').value);
+            const erro = validarNovaSenha(nova, confirmacao);
+            if (erro) { mostrarToastNinho('Senha Inválida', erro, 'alerta'); return; }
+
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho('Erro', 'Conexão indisponível com o banco.', 'erro'); return; }
+
+            const btn = document.getElementById('btn-esq-salvar');
+            try {
+                if (btn) { btn.disabled = true; btn.innerText = 'Salvando...'; }
+                const { data, error } = await client
+                    .from('staff')
+                    .update({ birth_date: nova })
+                    .eq('cpf', contextoEsqueciSenha.cpf)
+                    .eq('role', contextoEsqueciSenha.role)
+                    .select('cpf');
+                if (error) throw error;
+                if (!data || data.length === 0) throw new Error('Não foi possível atualizar a senha.');
+
+                contextoEsqueciSenha = null;
+                fecharModalPorId('modal-esqueci-senha');
+                mostrarToastNinho('Senha redefinida', 'Sua senha foi atualizada. Faça login com a nova senha.', 'sucesso');
+            } catch (err) {
+                mostrarToastNinho('Erro', err.message || 'Falha ao redefinir a senha.', 'erro');
+            } finally {
+                const btnAtual = document.getElementById('btn-esq-salvar');
+                if (btnAtual) { btnAtual.disabled = false; btnAtual.innerText = 'Redefinir Senha'; }
+            }
+        }
+
+        // =========================================================================
+        // ALTERAR SENHA (USUÁRIO LOGADO)
+        // =========================================================================
+        function abrirModalAlterarSenha() {
+            if (!sessaoAtual || !sessaoAtual.usuario) return;
+            fecharModalPorId('modal-alterar-senha');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'modal-alterar-senha';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    ${cabecalhoModalHTML('Alterar Senha', 'modal-alterar-senha')}
+                    <form onsubmit="salvarAlterarSenha(event)">
+                        <label style="margin-top: 0;">Senha Atual</label>
+                        ${campoSenhaHTML('as-atual', 'Digite sua senha atual', '', 'current-password', false)}
+                        <label>Nova Senha</label>
+                        ${campoSenhaHTML('as-nova', 'Mínimo 6 caracteres', "indicadorForcaSenha(this, 'as-barra', 'as-forca')", 'new-password', true)}
+                        ${indicadorForcaHTML('as-barra', 'as-forca')}
+                        <label>Confirmar Nova Senha</label>
+                        ${campoSenhaHTML('as-conf', 'Repita a nova senha', '', 'new-password', true)}
+                        <div style="margin-top: 18px;"><button type="submit" id="btn-as-salvar" class="btn-primary">Salvar Nova Senha</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function salvarAlterarSenha(event) {
+            event.preventDefault();
+            if (senhaBloqueada()) return;
+
+            const usuario = sessaoAtual && sessaoAtual.usuario;
+            if (!usuario || !usuario.cpf || !usuario.id) {
+                mostrarToastNinho('Aviso', 'Esta conta não possui senha cadastrada para ser alterada.', 'alerta');
+                return;
+            }
+
+            const atual = sanitizarSenha(document.getElementById('as-atual').value);
+            const nova = sanitizarSenha(document.getElementById('as-nova').value);
+            const confirmacao = sanitizarSenha(document.getElementById('as-conf').value);
+
+            if (!atual) { mostrarToastNinho('Senha Atual', 'Digite a sua senha atual.', 'alerta'); return; }
+            const erro = validarNovaSenha(nova, confirmacao, atual);
+            if (erro) { mostrarToastNinho('Senha Inválida', erro, 'alerta'); return; }
+
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho('Erro', 'Conexão indisponível com o banco.', 'erro'); return; }
+
+            const btn = document.getElementById('btn-as-salvar');
+            try {
+                if (btn) { btn.disabled = true; btn.innerText = 'Salvando...'; }
+
+                const { data: contas, error: errBusca } = await client
+                    .from('staff')
+                    .select('cpf')
+                    .in('cpf', variantesCPF(usuario.cpf))
+                    .eq('birth_date', atual);
+                if (errBusca) throw errBusca;
+
+                if (!contas || contas.length === 0) {
+                    registrarFalhaSenha();
+                    mostrarToastNinho('Senha Incorreta', 'A senha atual não confere.', 'erro');
+                    return;
+                }
+
+                const { data, error } = await client
+                    .from('staff')
+                    .update({ birth_date: nova })
+                    .eq('cpf', contas[0].cpf)
+                    .select('cpf');
+                if (error) throw error;
+                if (!data || data.length === 0) throw new Error('Não foi possível atualizar a senha.');
+
+                controleTentativasSenha.falhas = 0;
+                sessaoAtual.usuario.birth_date = nova;
+                salvarSessaoLocal();
+                fecharModalPorId('modal-alterar-senha');
+                mostrarToastNinho('Senha alterada', 'Sua senha foi atualizada com sucesso!', 'sucesso');
+            } catch (err) {
+                mostrarToastNinho('Erro', err.message || 'Falha ao alterar a senha.', 'erro');
+            } finally {
+                const btnAtual = document.getElementById('btn-as-salvar');
+                if (btnAtual) { btnAtual.disabled = false; btnAtual.innerText = 'Salvar Nova Senha'; }
+            }
+        }
+
+        // =========================================================================
+        // EDITAR PERFIL (TODOS OS PERFIS)
+        // =========================================================================
+        function abrirModalEditarPerfil() {
+            if (!sessaoAtual || !sessaoAtual.usuario) return;
+            fecharModalPorId('modal-editar-perfil');
+
+            const u = sessaoAtual.usuario;
+            const tipo = sessaoAtual.tipo;
+            const rotulos = { professor: 'Professor(a)', coordenador: 'Coordenador(a)', responsavel: 'Responsável' };
+            const filho = tipo === 'responsavel' ? sessaoAtual.filhoAtivo : null;
+            const filhoValido = !!(filho && filho.id && filho.id !== 'demo-crianca-01');
+
+            const blocoConta = u.id ? `
+                <label style="margin-top: 0;">Nome Completo</label>
+                <input type="text" id="ep-nome" value="${esc(u.full_name || '')}" maxlength="100" autocapitalize="words" required>
+                <label>CPF</label>
+                <input type="text" value="${esc(u.cpf || '')}" readonly disabled style="background:#e2e8f0; cursor:not-allowed;">
+                <label>E-mail</label>
+                <input type="email" id="ep-email" value="${esc(u.email || '')}" maxlength="120" inputmode="email" autocapitalize="none" required>
+            ` : `
+                <p style="font-size: 12px; color: #64748b;">Os dados pessoais deste acesso não estão cadastrados no sistema.</p>
+            `;
+
+            let blocoFilho = '';
+            if (filhoValido) {
+                const nascExibicao = (() => {
+                    const n = normalizarDataNasc(filho.birth_date);
+                    return n.length === 8 ? `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}` : (filho.birth_date || '');
+                })();
+                const generoFem = String(filho.gender || '').toLowerCase() === 'feminino';
+                blocoFilho = `
+                    <hr style="margin: 16px 0 12px; border: 0; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 12px; font-weight: 700; color: #1e3a8a;">Dados do Aluno(a)</p>
+                    <label>Nome do Aluno(a)</label>
+                    <input type="text" id="ep-filho-nome" value="${esc(filho.full_name || '')}" maxlength="100" autocapitalize="words" required>
+                    <label>Sexo / Gênero</label>
+                    <select id="ep-filho-genero">
+                        <option value="Masculino" ${!generoFem ? 'selected' : ''}>Masculino</option>
+                        <option value="Feminino" ${generoFem ? 'selected' : ''}>Feminino</option>
+                    </select>
+                    <label>Data de Nascimento do Aluno(a)</label>
+                    <input type="text" id="ep-filho-nasc" value="${esc(nascExibicao)}" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" oninput="aplicarMascaraData(this)" required>
+                    <label>Alergias ou Restrições</label>
+                    <input type="text" id="ep-filho-alergia" value="${esc(filho.allergies || '')}" maxlength="150">
+                    <label>Telefone de Emergência</label>
+                    <input type="tel" id="ep-filho-tel" value="${esc(filho.emergency_phone || '')}" placeholder="(00) 00000-0000" maxlength="15" inputmode="tel" oninput="aplicarMascaraTelefone(this)">
+                `;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'modal-editar-perfil';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    ${cabecalhoModalHTML('Editar Perfil', 'modal-editar-perfil')}
+                    <p style="font-size: 11px; color: #64748b; margin-bottom: 4px;">Perfil: <strong>${esc(rotulos[tipo] || 'Usuário')}</strong></p>
+                    <form onsubmit="salvarEditarPerfil(event)">
+                        ${blocoConta}
+                        ${blocoFilho}
+                        <div style="margin-top: 18px;"><button type="submit" id="btn-ep-salvar" class="btn-primary">Salvar Alterações</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function salvarEditarPerfil(event) {
+            event.preventDefault();
+            const u = sessaoAtual && sessaoAtual.usuario;
+            if (!u) return;
+
+            const client = obterSupabase();
+            if (!client) { mostrarToastNinho('Erro', 'Conexão indisponível com o banco.', 'erro'); return; }
+
+            const filho = sessaoAtual.tipo === 'responsavel' ? sessaoAtual.filhoAtivo : null;
+            const filhoValido = !!(filho && filho.id && filho.id !== 'demo-crianca-01' && document.getElementById('ep-filho-nome'));
+
+            // 1) Validação e sanitização de tudo antes de gravar qualquer coisa
+            let updConta = {};
+            if (u.id) {
+                const nome = sanitizarTexto(document.getElementById('ep-nome').value, 100);
+                const email = sanitizarTexto(document.getElementById('ep-email').value, 120).toLowerCase();
+                if (nome.length < 3) { mostrarToastNinho('Nome Inválido', 'Digite o nome completo.', 'alerta'); return; }
+                if (!emailValido(email)) { mostrarToastNinho('E-mail Inválido', 'Digite um e-mail válido.', 'alerta'); return; }
+                if (nome !== (u.full_name || '')) updConta.full_name = nome;
+                if (email !== String(u.email || '').trim().toLowerCase()) updConta.email = email;
+            }
+
+            let updFilho = {};
+            if (filhoValido) {
+                const nomeF = sanitizarTexto(document.getElementById('ep-filho-nome').value, 100);
+                const generoF = document.getElementById('ep-filho-genero').value === 'Feminino' ? 'Feminino' : 'Masculino';
+                const nascF = sanitizarTexto(document.getElementById('ep-filho-nasc').value, 10);
+                const alergiaF = sanitizarTexto(document.getElementById('ep-filho-alergia').value, 150) || 'Nenhuma';
+                const telF = sanitizarTexto(document.getElementById('ep-filho-tel').value, 15);
+
+                if (nomeF.length < 2) { mostrarToastNinho('Nome Inválido', 'Digite o nome do aluno(a).', 'alerta'); return; }
+                if (!validarData(nascF)) { mostrarToastNinho('Data Inválida', 'Digite a data de nascimento no formato DD/MM/AAAA.', 'alerta'); return; }
+
+                if (nomeF !== (filho.full_name || '')) updFilho.full_name = nomeF;
+                if (generoF !== (filho.gender || 'Masculino')) updFilho.gender = generoF;
+                if (normalizarDataNasc(nascF) !== normalizarDataNasc(filho.birth_date)) updFilho.birth_date = nascF;
+                if (alergiaF !== (filho.allergies || '')) updFilho.allergies = alergiaF;
+                if (telF !== (filho.emergency_phone || '')) updFilho.emergency_phone = telF;
+            }
+
+            if (Object.keys(updConta).length === 0 && Object.keys(updFilho).length === 0) {
+                mostrarToastNinho('Sem alterações', 'Nenhum dado foi modificado.', 'alerta');
+                return;
+            }
+
+            // 2) Gravação (somente campos alterados)
+            const btn = document.getElementById('btn-ep-salvar');
+            try {
+                if (btn) { btn.disabled = true; btn.innerText = 'Salvando...'; }
+
+                if (Object.keys(updConta).length > 0) {
+                    const { data, error } = await client.from('staff').update(updConta).eq('cpf', u.cpf).select('cpf');
+                    if (error) throw error;
+                    if (!data || data.length === 0) throw new Error('Não foi possível atualizar o perfil.');
+                    Object.assign(sessaoAtual.usuario, updConta);
+                }
+
+                if (Object.keys(updFilho).length > 0) {
+                    const { data, error } = await client.from('children').update(updFilho).eq('id', filho.id).select('id');
+                    if (error) throw error;
+                    if (!data || data.length === 0) throw new Error('Não foi possível atualizar os dados do aluno.');
+                    Object.assign(sessaoAtual.filhoAtivo, updFilho);
+                }
+
+                salvarSessaoLocal();
+                fecharModalPorId('modal-editar-perfil');
+                mostrarToastNinho('Perfil atualizado', 'Seus dados foram salvos com sucesso!', 'sucesso');
+                carregarViewPrincipal();
+            } catch (err) {
+                mostrarToastNinho('Erro ao salvar', err.message || 'Falha ao atualizar o perfil.', 'erro');
+            } finally {
+                const btnAtual = document.getElementById('btn-ep-salvar');
+                if (btnAtual) { btnAtual.disabled = false; btnAtual.innerText = 'Salvar Alterações'; }
+            }
+        }
+
+        function sairDoSistema() {
+            sessaoAtual = { tipo: null, usuario: null, filhoAtivo: null };
+            try {
+                if (window.sessionStorage) sessionStorage.removeItem('ninho_sessao');
+            } catch(e) {}
+            mostrarTelaAuth();
+        }
+    </script>
+</body>
+</html>
